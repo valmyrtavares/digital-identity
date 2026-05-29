@@ -19,8 +19,10 @@ export default function AudioVisualizer() {
   const glassFilterRef = useRef(null);
   const glassGainRef = useRef(null);
 
-  // Chord refs (Menu aberto)
-  const chordGainRef = useRef(null);
+  // Cathedral Xylophone refs (Menu aberto)
+  const xyloInputRef = useRef(null); // Nó de entrada para a catedral
+  const cathedralMasterGainRef = useRef(null);
+  const feedbackGainRef = useRef(null);
   const lfoGainRef = useRef(null);
 
   // Interaction refs
@@ -84,43 +86,39 @@ export default function AudioVisualizer() {
       lfoOsc.start();
 
       // ============================================
-      // 2. CHORD SYNTH (Dó Maior com 9ª Voicing Espaçado)
+      // 2. CATHEDRAL REVERB NETWORK (Reverb Matemático)
       // ============================================
-      const chordGain = ctx.createGain();
-      chordGain.gain.value = 0; // mutado por padrão
-      chordGainRef.current = chordGain;
+      const cathedralMasterGain = ctx.createGain();
+      cathedralMasterGain.gain.value = 0; // começa mutado
+      cathedralMasterGain.connect(ctx.destination);
+      cathedralMasterGainRef.current = cathedralMasterGain;
 
-      // Delay/Echo Effect para suavizar os osciladores puros
-      const delayNode = ctx.createDelay();
-      delayNode.delayTime.value = 0.4; // 400ms delay
+      const xyloInput = ctx.createGain();
+      xyloInput.gain.value = 1.0; 
+      xyloInputRef.current = xyloInput;
+
+      // Delay gigante para simular o espaço da catedral
+      const delayNode = ctx.createDelay(5.0); 
+      delayNode.delayTime.value = 1.5; // 1.5s delay
+      
       const feedbackGain = ctx.createGain();
-      feedbackGain.gain.value = 0.3; // 30% feedback
+      feedbackGain.gain.value = 0.85; // Feedback gigantesco
+      feedbackGainRef.current = feedbackGain;
       
-      // Rotas do delay
-      chordGain.connect(delayNode);
-      delayNode.connect(feedbackGain);
+      // Filtro Lowpass dentro do loop de feedback simula a perda de agudos na catedral
+      const echoFilter = ctx.createBiquadFilter();
+      echoFilter.type = "lowpass";
+      echoFilter.frequency.value = 1200;
+      
+      // Conexões da rede de reverb
+      xyloInput.connect(delayNode);
+      delayNode.connect(echoFilter);
+      echoFilter.connect(feedbackGain);
       feedbackGain.connect(delayNode);
-      delayNode.connect(ctx.destination);
-      chordGain.connect(ctx.destination); // Som direto + delay
-
-      // Root já está no Drone (C2). 
-      // Voicing do CM9 nas oitavas 3 e 4 para evitar embolamento: E3, G3, B3, D4
       
-      // Major 3rd (E3)
-      const oscM3 = ctx.createOscillator(); oscM3.type = "sine"; oscM3.frequency.value = 164.81;
-      oscM3.connect(chordGain); oscM3.start();
-      
-      // Perfect 5th (G3)
-      const oscP5 = ctx.createOscillator(); oscP5.type = "triangle"; oscP5.frequency.value = 196.00;
-      oscP5.connect(chordGain); oscP5.start();
-      
-      // Major 7th (B3)
-      const oscMaj7 = ctx.createOscillator(); oscMaj7.type = "sine"; oscMaj7.frequency.value = 246.94;
-      oscMaj7.connect(chordGain); oscMaj7.start();
-      
-      // Major 9th (D4)
-      const oscM9 = ctx.createOscillator(); oscM9.type = "sine"; oscM9.frequency.value = 293.66;
-      oscM9.connect(chordGain); oscM9.start();
+      // O som limpo (dry) e o som reverberado (wet) vão para o master da catedral
+      delayNode.connect(cathedralMasterGain);
+      xyloInput.connect(cathedralMasterGain);
 
       // ============================================
       // 3. GLASS SYNTH (Agudos de Poeira/Cacos)
@@ -152,27 +150,78 @@ export default function AudioVisualizer() {
 
   }, [isAudioEnabled]);
 
-  // Handle Menu Open/Close Chord Logic
+  // Handle Menu Open/Close Cathedral Xylophone Loop Logic
   useEffect(() => {
-    if (!isAudioEnabled || !audioCtxRef.current || !chordGainRef.current) return;
+    if (!isAudioEnabled || !audioCtxRef.current || !xyloInputRef.current) return;
     const time = audioCtxRef.current.currentTime;
+    let timeoutId;
 
     if (isMenuOpen) {
-      // Menu Aberto: Congela modulação caótica e impõe o Acorde CM9
-      osc1Ref.current.frequency.setTargetAtTime(65.41, time, 1.5); // Força C2
-      osc2Ref.current.frequency.setTargetAtTime(65.8, time, 1.5);
-      droneFilterRef.current.frequency.setTargetAtTime(1000, time, 1.5); // Abre o filtro
+      // 1. O GRAVE ANCORA (Baixo Contínuo sustentando o acorde diminuto)
+      osc1Ref.current.frequency.setTargetAtTime(65.41, time, 1.0); // Força C2
+      osc2Ref.current.frequency.setTargetAtTime(65.41, time, 1.0); // Alinha os dois para focar
+      droneFilterRef.current.frequency.setTargetAtTime(600, time, 1.5);
       
-      // Traz as extensões espalhadas (E3, G3, B3, D4) de forma suave
-      chordGainRef.current.gain.setTargetAtTime(0.08, time, 2.0); // Volume baixo para não estourar
-      
-      // Desliga o LFO do grave para estabilidade
+      // Desliga a respiração do LFO para o baixo ficar perpétuo e sólido
       lfoGainRef.current.gain.setTargetAtTime(0, time, 0.5);
+
+      // Liga a Catedral
+      cathedralMasterGainRef.current.gain.setTargetAtTime(1.0, time, 0.1);
+      feedbackGainRef.current.gain.setTargetAtTime(0.85, time, 0.1);
+
+      // 2. LOOP INFINITO DO XILOFONE
+      const playRandomNote = () => {
+        if (!isMenuOpen || !audioCtxRef.current) return; // Segurança
+
+        const now = audioCtxRef.current.currentTime;
+        // Acorde Diminuto 7 (C dim7): C4, Eb4, Gb4, A4
+        const freqs = [261.63, 311.13, 369.99, 440.00];
+        
+        // Sorteia uma nota e uma oitava opcional para dar mais brilho
+        const baseFreq = freqs[Math.floor(Math.random() * freqs.length)];
+        const freq = Math.random() > 0.5 ? baseFreq : baseFreq * 2; // Pula uma oitava aleatoriamente
+        
+        // Cria um oscilador para essa nota específica
+        const noteOsc = audioCtxRef.current.createOscillator();
+        noteOsc.type = "sine";
+        noteOsc.frequency.value = freq;
+        
+        // Cria o envelope de Xilofone (Ataque rápido, Decaimento lento)
+        const noteGain = audioCtxRef.current.createGain();
+        noteGain.gain.setValueAtTime(0, now);
+        noteGain.gain.linearRampToValueAtTime(0.3, now + 0.05); // Attack da batida do bastão
+        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0); // Decay lento
+        
+        // Conecta na Catedral (Reverb/Delay network)
+        noteOsc.connect(noteGain);
+        noteGain.connect(xyloInputRef.current);
+        
+        noteOsc.start(now);
+        noteOsc.stop(now + 3.5); // Desliga da memória quando o som acaba
+        
+        // Agenda a próxima batida com tempo aleatório (imprevisível: entre 400ms e 1800ms)
+        const nextDelay = 400 + Math.random() * 1400;
+        timeoutId = setTimeout(playRandomNote, nextDelay);
+      };
+
+      // Começa o loop assim que o menu abre
+      playRandomNote();
+
     } else {
-      // Menu Fechado: Volta ao caos e apaga o acorde
-      chordGainRef.current.gain.setTargetAtTime(0, time, 0.8);
-      lfoGainRef.current.gain.setTargetAtTime(3, time, 1); // Volta o "respirar"
+      // MENU FECHOU
+      // Pára o loop recursivo imediatamente
+      clearTimeout(timeoutId);
+      
+      // Desliga a Catedral imediatamente (fade out rápido e mata o buffer de eco)
+      cathedralMasterGainRef.current.gain.setTargetAtTime(0, time, 0.1);
+      feedbackGainRef.current.gain.setTargetAtTime(0, time, 0.1);
+      
+      // Volta o grave ao estado caótico (LFO)
+      lfoGainRef.current.gain.setTargetAtTime(3, time, 1); 
     }
+
+    // Cleanup caso o componente desmonte ou isMenuOpen mude
+    return () => clearTimeout(timeoutId);
   }, [isMenuOpen, isAudioEnabled]);
 
   // Handle Global Interactions (Click & Drag)
@@ -194,7 +243,7 @@ export default function AudioVisualizer() {
     };
 
     const handleMouseMove = (e) => {
-      if (isMenuOpen) return; // Menu aberto ignora modulação
+      if (isMenuOpen) return; // Menu aberto ignora modulação pelo mouse
 
       const x = e.clientX / window.innerWidth;
       const y = e.clientY / window.innerHeight;

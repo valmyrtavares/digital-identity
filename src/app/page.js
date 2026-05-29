@@ -1,9 +1,13 @@
+"use client";
+
 import Scene from '@/components/Scene';
 import AnimatedText from '@/components/AnimatedText';
 import AudioVisualizer from '@/components/AudioVisualizer';
 import OverlayMenu from '@/components/OverlayMenu';
+import { useMenu } from '@/context/MenuContext';
 
 export default function Home() {
+  const { isMenuOpen } = useMenu();
   return (
     <main className="relative w-full min-h-screen text-white font-sans overflow-hidden">
       {/* O Canvas 3D fica fixo no fundo */}
@@ -15,8 +19,8 @@ export default function Home() {
       {/* Menu Hamburger e Overlay */}
       <OverlayMenu />
 
-      {/* Conteúdo rolável por cima da cena */}
-      <div className="relative z-10 w-full pointer-events-none">
+      {/* Conteúdo rolável por cima da cena (oculto quando o menu abre) */}
+      <div className={`relative z-10 w-full pointer-events-none transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 hidden' : 'opacity-100'}`}>
         
         {/* Seção 1 - Hero */}
         <section className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
