@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useMenu } from "@/context/MenuContext";
 
 export default function AudioVisualizer() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const audioCtxRef = useRef(null);
+  const { isMenuOpen } = useMenu();
   
   // Drone refs (Grave central)
   const osc1Ref = useRef(null);
@@ -16,6 +18,10 @@ export default function AudioVisualizer() {
   const glassOscRef = useRef(null);
   const glassFilterRef = useRef(null);
   const glassGainRef = useRef(null);
+
+  // Chord refs (Menu aberto)
+  const chordGainRef = useRef(null);
+  const lfoGainRef = useRef(null);
 
   // Interaction refs
   const isDraggingRef = useRef(false);
@@ -51,34 +57,87 @@ export default function AudioVisualizer() {
 
       const osc1 = ctx.createOscillator();
       osc1.type = "sine";
-      osc1.frequency.value = 65; // ~C2
+      osc1.frequency.value = 65.41; // C2 (Root)
       osc1.connect(droneFilter);
       osc1.start();
       osc1Ref.current = osc1;
 
       const osc2 = ctx.createOscillator();
       osc2.type = "triangle";
-      osc2.frequency.value = 65.5; // Detuned
+      osc2.frequency.value = 65.8; // Detuned
       osc2.connect(droneFilter);
       osc2.start();
       osc2Ref.current = osc2;
 
+      // LFO para Oscilação "Respirando"
+      const lfoOsc = ctx.createOscillator();
+      lfoOsc.type = "sine";
+      lfoOsc.frequency.value = 0.3; 
+      
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 3; 
+      lfoGainRef.current = lfoGain;
+      
+      lfoOsc.connect(lfoGain);
+      lfoGain.connect(osc1.frequency);
+      lfoGain.connect(osc2.frequency);
+      lfoOsc.start();
+
       // ============================================
-      // 2. GLASS SYNTH (Agudos de Poeira/Cacos)
+      // 2. CHORD SYNTH (Dó Maior com 9ª Voicing Espaçado)
+      // ============================================
+      const chordGain = ctx.createGain();
+      chordGain.gain.value = 0; // mutado por padrão
+      chordGainRef.current = chordGain;
+
+      // Delay/Echo Effect para suavizar os osciladores puros
+      const delayNode = ctx.createDelay();
+      delayNode.delayTime.value = 0.4; // 400ms delay
+      const feedbackGain = ctx.createGain();
+      feedbackGain.gain.value = 0.3; // 30% feedback
+      
+      // Rotas do delay
+      chordGain.connect(delayNode);
+      delayNode.connect(feedbackGain);
+      feedbackGain.connect(delayNode);
+      delayNode.connect(ctx.destination);
+      chordGain.connect(ctx.destination); // Som direto + delay
+
+      // Root já está no Drone (C2). 
+      // Voicing do CM9 nas oitavas 3 e 4 para evitar embolamento: E3, G3, B3, D4
+      
+      // Major 3rd (E3)
+      const oscM3 = ctx.createOscillator(); oscM3.type = "sine"; oscM3.frequency.value = 164.81;
+      oscM3.connect(chordGain); oscM3.start();
+      
+      // Perfect 5th (G3)
+      const oscP5 = ctx.createOscillator(); oscP5.type = "triangle"; oscP5.frequency.value = 196.00;
+      oscP5.connect(chordGain); oscP5.start();
+      
+      // Major 7th (B3)
+      const oscMaj7 = ctx.createOscillator(); oscMaj7.type = "sine"; oscMaj7.frequency.value = 246.94;
+      oscMaj7.connect(chordGain); oscMaj7.start();
+      
+      // Major 9th (D4)
+      const oscM9 = ctx.createOscillator(); oscM9.type = "sine"; oscM9.frequency.value = 293.66;
+      oscM9.connect(chordGain); oscM9.start();
+
+      // ============================================
+      // 3. GLASS SYNTH (Agudos de Poeira/Cacos)
       // ============================================
       const glassGain = ctx.createGain();
-      glassGain.gain.value = 0; // Starts muted
+      glassGain.gain.value = 0; 
       glassGain.connect(ctx.destination);
       glassGainRef.current = glassGain;
 
       const glassFilter = ctx.createBiquadFilter();
-      glassFilter.type = "highpass"; // Only lets high frequencies through
+      glassFilter.type = "highpass"; 
       glassFilter.frequency.value = 2000;
       glassFilter.connect(glassGain);
       glassFilterRef.current = glassFilter;
 
       const glassOsc = ctx.createOscillator();
-      glassOsc.type = "square"; // Harsher, crystal-like texture
+      glassOsc.type = "square"; 
       glassOsc.frequency.value = 1200; 
       glassOsc.connect(glassFilter);
       glassOsc.start();
@@ -89,44 +148,58 @@ export default function AudioVisualizer() {
       audioCtxRef.current.resume();
     }
 
-    // Fade in drone smoothly
     droneGainRef.current.gain.setTargetAtTime(0.3, audioCtxRef.current.currentTime, 0.1);
 
   }, [isAudioEnabled]);
+
+  // Handle Menu Open/Close Chord Logic
+  useEffect(() => {
+    if (!isAudioEnabled || !audioCtxRef.current || !chordGainRef.current) return;
+    const time = audioCtxRef.current.currentTime;
+
+    if (isMenuOpen) {
+      // Menu Aberto: Congela modulação caótica e impõe o Acorde CM9
+      osc1Ref.current.frequency.setTargetAtTime(65.41, time, 1.5); // Força C2
+      osc2Ref.current.frequency.setTargetAtTime(65.8, time, 1.5);
+      droneFilterRef.current.frequency.setTargetAtTime(1000, time, 1.5); // Abre o filtro
+      
+      // Traz as extensões espalhadas (E3, G3, B3, D4) de forma suave
+      chordGainRef.current.gain.setTargetAtTime(0.08, time, 2.0); // Volume baixo para não estourar
+      
+      // Desliga o LFO do grave para estabilidade
+      lfoGainRef.current.gain.setTargetAtTime(0, time, 0.5);
+    } else {
+      // Menu Fechado: Volta ao caos e apaga o acorde
+      chordGainRef.current.gain.setTargetAtTime(0, time, 0.8);
+      lfoGainRef.current.gain.setTargetAtTime(3, time, 1); // Volta o "respirar"
+    }
+  }, [isMenuOpen, isAudioEnabled]);
 
   // Handle Global Interactions (Click & Drag)
   useEffect(() => {
     const handleMouseDown = () => {
       isDraggingRef.current = true;
-      
-      // Quando clica, o drone sobe uma oitava para criar tensão
-      // e o som de "vidro" acorda (ganha volume base)
-      if (isAudioEnabled && audioCtxRef.current && osc1Ref.current) {
+      if (isAudioEnabled && audioCtxRef.current && osc1Ref.current && !isMenuOpen) {
         const time = audioCtxRef.current.currentTime;
-        osc1Ref.current.frequency.setTargetAtTime(130, time, 0.1); 
-        osc2Ref.current.frequency.setTargetAtTime(131, time, 0.1);
         glassGainRef.current.gain.setTargetAtTime(0.05, time, 0.1);
       }
     };
 
     const handleMouseUp = () => {
       isDraggingRef.current = false;
-      
-      // Quando solta, volta ao grave relaxante e silencia o vidro
-      if (isAudioEnabled && audioCtxRef.current && osc1Ref.current) {
+      if (isAudioEnabled && audioCtxRef.current && osc1Ref.current && !isMenuOpen) {
         const time = audioCtxRef.current.currentTime;
-        osc1Ref.current.frequency.setTargetAtTime(65, time, 0.3);
-        osc2Ref.current.frequency.setTargetAtTime(65.5, time, 0.3);
-        glassGainRef.current.gain.setTargetAtTime(0, time, 0.8); // Fade out mais longo
+        glassGainRef.current.gain.setTargetAtTime(0, time, 0.8);
       }
     };
 
     const handleMouseMove = (e) => {
+      if (isMenuOpen) return; // Menu aberto ignora modulação
+
       const x = e.clientX / window.innerWidth;
       const y = e.clientY / window.innerHeight;
       const now = performance.now();
       
-      // Calcular a velocidade do mouse (pixels por milissegundo)
       const dx = e.clientX - lastMousePosRef.current.x;
       const dy = e.clientY - lastMousePosRef.current.y;
       const dt = now - lastMousePosRef.current.time || 1;
@@ -137,23 +210,26 @@ export default function AudioVisualizer() {
       if (isAudioEnabled && audioCtxRef.current && droneFilterRef.current) {
         const time = audioCtxRef.current.currentTime;
         
-        // 1. Modulação do Drone Grave (Sempre ocorre com o mouse)
-        // Eixo X controla o brilho (Filtro passa-baixa)
+        if (!isDraggingRef.current) {
+          const idleFreq = 40 + x * 50;
+          osc1Ref.current.frequency.setTargetAtTime(idleFreq, time, 0.1);
+          osc2Ref.current.frequency.setTargetAtTime(idleFreq + 0.5, time, 0.1);
+        } else {
+          const tensionFreq = 100 + x * 80 + velocity * 10;
+          osc1Ref.current.frequency.setTargetAtTime(tensionFreq, time, 0.1);
+          osc2Ref.current.frequency.setTargetAtTime(tensionFreq + 1, time, 0.1);
+        }
+
         const droneTargetFreq = 200 + x * 1800;
         droneFilterRef.current.frequency.setTargetAtTime(droneTargetFreq, time, 0.1);
         
-        // Eixo Y controla o volume
         const droneTargetGain = 0.05 + y * 0.35;
         droneGainRef.current.gain.setTargetAtTime(droneTargetGain, time, 0.1);
 
-        // 2. Modulação do Som Agudo/Cristal (Baseado no arraste e velocidade)
         if (isDraggingRef.current && glassOscRef.current) {
-          // O pitch fica mais estridente conforme a velocidade e posição X
           const glassPitch = 1000 + (velocity * 800) + (x * 1500); 
           glassOscRef.current.frequency.setTargetAtTime(glassPitch, time, 0.05);
-          
-          // O volume dá "picos" quando movemos o mouse mais rápido, parecendo atrito/quebra
-          const glassVolume = Math.min(0.05 + velocity * 0.15, 0.25); // cap de volume em 0.25
+          const glassVolume = Math.min(0.05 + velocity * 0.15, 0.25);
           glassGainRef.current.gain.setTargetAtTime(glassVolume, time, 0.05);
         }
       }
@@ -168,10 +244,10 @@ export default function AudioVisualizer() {
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [isAudioEnabled]);
+  }, [isAudioEnabled, isMenuOpen]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-[70]">
       <button
         onClick={() => setIsAudioEnabled(!isAudioEnabled)}
         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full border backdrop-blur-md transition-all duration-300 ${

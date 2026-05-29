@@ -1,6 +1,7 @@
 import Scene from '@/components/Scene';
 import AnimatedText from '@/components/AnimatedText';
 import AudioVisualizer from '@/components/AudioVisualizer';
+import OverlayMenu from '@/components/OverlayMenu';
 
 export default function Home() {
   return (
@@ -11,8 +12,11 @@ export default function Home() {
       {/* Controle de Áudio Generativo */}
       <AudioVisualizer />
 
+      {/* Menu Hamburger e Overlay */}
+      <OverlayMenu />
+
       {/* Conteúdo rolável por cima da cena */}
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full pointer-events-none">
         
         {/* Seção 1 - Hero */}
         <section className="flex flex-col items-center justify-center min-h-screen p-8 text-center">

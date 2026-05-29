@@ -17,6 +17,7 @@ export const metadata = {
 };
 
 import SmoothScroll from "@/components/SmoothScroll";
+import { MenuProvider } from "@/context/MenuContext";
 
 export default function RootLayout({ children }) {
   return (
@@ -26,7 +27,9 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[#050505] text-white" suppressHydrationWarning>
-        <SmoothScroll>{children}</SmoothScroll>
+        <MenuProvider>
+          <SmoothScroll>{children}</SmoothScroll>
+        </MenuProvider>
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, MeshDistortMaterial, Environment, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
+import { useMenu } from "@/context/MenuContext";
 
 // Componente do Objeto 3D interativo
 function InteractiveShape() {
@@ -14,14 +15,25 @@ function InteractiveShape() {
   const [hovered, setHover] = useState(false);
   const [clicked, setClicked] = useState(false);
 
-  // Rastrear scroll
+  // Rastrear scroll e cliques globais
   const scrollYRef = useRef(0);
   useEffect(() => {
     const handleScroll = () => {
       scrollYRef.current = window.scrollY;
     };
+    
+    const handleMouseDown = () => setClicked(true);
+    const handleMouseUp = () => setClicked(false);
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseUp);
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
   }, []);
 
   // Animação a cada frame
@@ -38,10 +50,17 @@ function InteractiveShape() {
       const targetScrollZ = scrollYRef.current * 0.002;
       meshRef.current.rotation.z = THREE.MathUtils.lerp(meshRef.current.rotation.z, targetScrollZ, 0.05);
       
-      // Fazer o objeto seguir sutilmente o mouse, de forma mais agressiva se clicado
+      // Fazer o objeto seguir sutilmente o mouse (Esquerda, Direita e Profundidade)
       const lerpFactor = clicked ? 0.15 : 0.05;
-      meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, (state.pointer.x * state.viewport.width) / 10, lerpFactor);
-      meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, (state.pointer.y * state.viewport.height) / 10, lerpFactor);
+      
+      const targetX = (state.pointer.x * state.viewport.width) / 6;
+      const targetY = (state.pointer.y * state.viewport.height) / 6;
+      // Empurra o objeto pro fundo (eixo Z) dependendo de quão longe o mouse está do centro
+      const targetZ = -Math.abs(state.pointer.x * 2) - Math.abs(state.pointer.y * 2);
+
+      meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, targetX, lerpFactor);
+      meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, targetY, lerpFactor);
+      meshRef.current.position.z = THREE.MathUtils.lerp(meshRef.current.position.z, targetZ, lerpFactor);
       
       // Animação fluida das propriedades do material (distorção e escala)
       const targetDistort = clicked ? 1.5 : hovered ? 0.8 : 0.4;
@@ -66,11 +85,8 @@ function InteractiveShape() {
         }}
         onPointerOut={() => { 
           setHover(false); 
-          setClicked(false);
           document.body.style.cursor = 'auto';
         }}
-        onPointerDown={() => setClicked(true)}
-        onPointerUp={() => setClicked(false)}
       >
         <icosahedronGeometry args={[1.5, 4]} />
         <MeshDistortMaterial
@@ -100,23 +116,30 @@ function Stardust() {
       
       // Efeito paralaxe mais atrasado/lento em relação ao objeto principal (depth illusion)
       const lerpFactor = 0.02;
-      dustRef.current.position.x = THREE.MathUtils.lerp(dustRef.current.position.x, (state.pointer.x * state.viewport.width) / 15, lerpFactor);
-      dustRef.current.position.y = THREE.MathUtils.lerp(dustRef.current.position.y, (state.pointer.y * state.viewport.height) / 15, lerpFactor);
+      const targetX = (state.pointer.x * state.viewport.width) / 10;
+      const targetY = (state.pointer.y * state.viewport.height) / 10;
+      const targetZ = -Math.abs(state.pointer.x * 4) - Math.abs(state.pointer.y * 4); // Poeira recua mais no eixo Z
+
+      dustRef.current.position.x = THREE.MathUtils.lerp(dustRef.current.position.x, targetX, lerpFactor);
+      dustRef.current.position.y = THREE.MathUtils.lerp(dustRef.current.position.y, targetY, lerpFactor);
+      dustRef.current.position.z = THREE.MathUtils.lerp(dustRef.current.position.z, targetZ, lerpFactor);
     }
   });
 
   return (
     <group ref={dustRef}>
-      {/* Cacos mais brilhantes e ágeis */}
-      <Sparkles count={150} scale={12} size={3} speed={0.8} opacity={0.8} color="#e879f9" noise={2} />
-      {/* Poeira de fundo mais densa e lenta */}
-      <Sparkles count={400} scale={15} size={1.5} speed={0.2} opacity={0.4} color="#818cf8" noise={1} />
+      {/* Cacos mais brilhantes e ágeis (Luz incidindo) */}
+      <Sparkles count={300} scale={18} size={6} speed={1.2} opacity={1} color="#fbcfe8" noise={2} />
+      {/* Poeira de fundo muito mais densa e iluminada */}
+      <Sparkles count={1500} scale={25} size={3} speed={0.4} opacity={0.7} color="#c7d2fe" noise={1} />
     </group>
   );
 }
 
 // O Canvas principal que fica fixo no fundo
 export default function Scene() {
+  const { isMenuOpen } = useMenu();
+
   return (
     <div className="fixed top-0 left-0 w-full h-full z-[-1] bg-[#050505]">
       <Canvas camera={{ position: [0, 0, 5], fov: 45 }} dpr={[1, 2]}>
@@ -124,7 +147,7 @@ export default function Scene() {
         <directionalLight position={[10, 10, 5]} intensity={1} />
         
         <Stardust />
-        <InteractiveShape />
+        {!isMenuOpen && <InteractiveShape />}
         
         {/* Adiciona reflexos e iluminação de ambiente premium */}
         <Environment preset="city" />
