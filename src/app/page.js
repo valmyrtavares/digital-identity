@@ -1,11 +1,15 @@
 import Scene from '@/components/Scene';
 import AnimatedText from '@/components/AnimatedText';
+import AudioVisualizer from '@/components/AudioVisualizer';
 
 export default function Home() {
   return (
     <main className="relative w-full min-h-screen text-white font-sans overflow-hidden">
       {/* O Canvas 3D fica fixo no fundo */}
       <Scene />
+      
+      {/* Controle de Áudio Generativo */}
+      <AudioVisualizer />
 
       {/* Conteúdo rolável por cima da cena */}
       <div className="relative z-10 w-full">
