@@ -77,11 +77,11 @@ const GlitchItem = ({ project, index, addToRefs }) => {
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
     >
-      <span className={`font-light tracking-widest transition-all duration-300 ${isHovered ? 'text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] font-mono font-bold tracking-tight' : 'text-transparent bg-clip-text bg-gradient-to-br from-white via-gray-300 to-indigo-900'}`}>
+      <span className={`font-light tracking-widest transition-all duration-300 ${isHovered ? 'text-pink-300 drop-shadow-[0_0_15px_rgba(236,72,153,0.8)] font-mono font-bold tracking-tight' : 'text-transparent bg-clip-text bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400'}`}>
         {isHovered ? displayText : project.line1}
       </span>
       {!isHovered && (
-        <span className="font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-500 transition-all duration-500 ml-8 md:ml-12 text-[0.7em]">
+        <span className="font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-pink-300 to-purple-500 transition-all duration-500 ml-8 md:ml-12 text-[0.7em]">
           {project.line2}
         </span>
       )}
@@ -214,13 +214,17 @@ export default function OverlayMenu() {
         style={{ perspective: "1200px" }}
       >
         <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
-          {[1, 2, 3].map((_, i) => (
+          {[
+            "rgba(129,140,248,0.25)", // Indigo-400
+            "rgba(192,132,252,0.25)", // Purple-400
+            "rgba(244,114,182,0.25)"  // Pink-400
+          ].map((color, i) => (
             <div
               key={`light-${i}`}
               ref={(el) => addLightToRefs(el, i)}
               className="absolute w-[40vw] h-[40vw] rounded-full"
               style={{
-                background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%)",
+                background: `radial-gradient(circle, ${color} 0%, transparent 60%)`,
                 mixBlendMode: "screen",
                 filter: "blur(40px)",
               }}
