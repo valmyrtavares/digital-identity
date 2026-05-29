@@ -23,6 +23,7 @@ export default function AudioVisualizer() {
   // Cathedral Xylophone refs (Menu aberto)
   const xyloInputRef = useRef(null); // Nó de entrada para a catedral
   const cathedralMasterGainRef = useRef(null);
+  const cathedralLfoGainRef = useRef(null); // Novo: Modulador do volume da catedral
   const feedbackGainRef = useRef(null);
   const lfoGainRef = useRef(null);
 
@@ -44,10 +45,18 @@ export default function AudioVisualizer() {
       const ctx = new AudioContext();
       audioCtxRef.current = ctx;
 
-      // MASTER GAIN (Controle de silêncio global para a Mesa de Reunião)
+      // MASTER GAIN E COMPRESSOR (Evitar estouro de volume e silenciar globos)
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.value = -12;
+      compressor.knee.value = 30;
+      compressor.ratio.value = 12;
+      compressor.attack.value = 0.05;
+      compressor.release.value = 0.25;
+      compressor.connect(ctx.destination);
+
       const masterGain = ctx.createGain();
       masterGain.gain.value = 1;
-      masterGain.connect(ctx.destination);
+      masterGain.connect(compressor);
       masterGainRef.current = masterGain;
 
       // ============================================
@@ -109,13 +118,13 @@ export default function AudioVisualizer() {
       delayNode.delayTime.value = 1.5; // 1.5s delay
       
       const feedbackGain = ctx.createGain();
-      feedbackGain.gain.value = 0.85; // Feedback gigantesco
+      feedbackGain.gain.value = 0.65; // Reduzido de 0.85 para 0.65 para evitar acúmulo extremo
       feedbackGainRef.current = feedbackGain;
       
       // Filtro Lowpass dentro do loop de feedback simula a perda de agudos na catedral
       const echoFilter = ctx.createBiquadFilter();
       echoFilter.type = "lowpass";
-      echoFilter.frequency.value = 1200;
+      echoFilter.frequency.value = 1000;
       
       // Conexões da rede de reverb
       xyloInput.connect(delayNode);
@@ -126,6 +135,19 @@ export default function AudioVisualizer() {
       // O som limpo (dry) e o som reverberado (wet) vão para o master da catedral
       delayNode.connect(cathedralMasterGain);
       xyloInput.connect(cathedralMasterGain);
+
+      // CATHEDRAL BREATHER (LFO para aumentar e diminuir o volume master da catedral lentamente)
+      const catLfo = ctx.createOscillator();
+      catLfo.type = "sine";
+      catLfo.frequency.value = 0.05; // Ciclo super lento de 20 segundos
+      
+      const catLfoGain = ctx.createGain();
+      catLfoGain.gain.value = 0; // Começa desligado
+      cathedralLfoGainRef.current = catLfoGain;
+      
+      catLfo.connect(catLfoGain);
+      catLfoGain.connect(cathedralMasterGain.gain);
+      catLfo.start();
 
       // ============================================
       // 3. GLASS SYNTH (Agudos de Poeira/Cacos)
@@ -186,9 +208,10 @@ export default function AudioVisualizer() {
       // Desliga a respiração do LFO para o baixo ficar perpétuo e sólido
       lfoGainRef.current.gain.setTargetAtTime(0, time, 0.5);
 
-      // Liga a Catedral
-      cathedralMasterGainRef.current.gain.setTargetAtTime(1.0, time, 0.1);
-      feedbackGainRef.current.gain.setTargetAtTime(0.85, time, 0.1);
+      // Liga a Catedral no Gain base médio (ex: 0.5) e ativa o LFO que sobe e desce o volume
+      cathedralMasterGainRef.current.gain.setTargetAtTime(0.5, time, 0.1);
+      cathedralLfoGainRef.current.gain.setTargetAtTime(0.4, time, 0.1); // Oscila de 0.1 a 0.9 lentamente
+      feedbackGainRef.current.gain.setTargetAtTime(0.65, time, 0.1);
 
       // 2. LOOP INFINITO DO XILOFONE
       const playRandomNote = () => {
@@ -210,7 +233,7 @@ export default function AudioVisualizer() {
         // Cria o envelope de Xilofone (Ataque rápido, Decaimento lento)
         const noteGain = audioCtxRef.current.createGain();
         noteGain.gain.setValueAtTime(0, now);
-        noteGain.gain.linearRampToValueAtTime(0.3, now + 0.05); // Attack da batida do bastão
+        noteGain.gain.linearRampToValueAtTime(0.2, now + 0.05); // Volume de entrada reduzido de 0.3 para 0.2
         noteGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0); // Decay lento
         
         // Conecta na Catedral (Reverb/Delay network)
@@ -233,8 +256,9 @@ export default function AudioVisualizer() {
       // Pára o loop recursivo imediatamente
       clearTimeout(timeoutId);
       
-      // Desliga a Catedral imediatamente (fade out rápido e mata o buffer de eco)
+      // Desliga a Catedral imediatamente (fade out rápido e mata o buffer de eco e LFO)
       cathedralMasterGainRef.current.gain.setTargetAtTime(0, time, 0.1);
+      cathedralLfoGainRef.current.gain.setTargetAtTime(0, time, 0.1);
       feedbackGainRef.current.gain.setTargetAtTime(0, time, 0.1);
       
       // Volta o grave ao estado caótico (LFO)
