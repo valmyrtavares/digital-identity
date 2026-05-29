@@ -6,7 +6,8 @@ import { useMenu } from "@/context/MenuContext";
 export default function AudioVisualizer() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const audioCtxRef = useRef(null);
-  const { isMenuOpen } = useMenu();
+  const masterGainRef = useRef(null);
+  const { isMenuOpen, isBusinessPopupOpen } = useMenu();
   
   // Drone refs (Grave central)
   const osc1Ref = useRef(null);
@@ -43,12 +44,18 @@ export default function AudioVisualizer() {
       const ctx = new AudioContext();
       audioCtxRef.current = ctx;
 
+      // MASTER GAIN (Controle de silêncio global para a Mesa de Reunião)
+      const masterGain = ctx.createGain();
+      masterGain.gain.value = 1;
+      masterGain.connect(ctx.destination);
+      masterGainRef.current = masterGain;
+
       // ============================================
       // 1. DRONE SYNTH (Sintetizador Grave/Central)
       // ============================================
       const droneGain = ctx.createGain();
       droneGain.gain.value = 0; 
-      droneGain.connect(ctx.destination);
+      droneGain.connect(masterGain);
       droneGainRef.current = droneGain;
 
       const droneFilter = ctx.createBiquadFilter();
@@ -90,7 +97,7 @@ export default function AudioVisualizer() {
       // ============================================
       const cathedralMasterGain = ctx.createGain();
       cathedralMasterGain.gain.value = 0; // começa mutado
-      cathedralMasterGain.connect(ctx.destination);
+      cathedralMasterGain.connect(masterGain);
       cathedralMasterGainRef.current = cathedralMasterGain;
 
       const xyloInput = ctx.createGain();
@@ -125,7 +132,7 @@ export default function AudioVisualizer() {
       // ============================================
       const glassGain = ctx.createGain();
       glassGain.gain.value = 0; 
-      glassGain.connect(ctx.destination);
+      glassGain.connect(masterGain);
       glassGainRef.current = glassGain;
 
       const glassFilter = ctx.createBiquadFilter();
@@ -149,6 +156,20 @@ export default function AudioVisualizer() {
     droneGainRef.current.gain.setTargetAtTime(0.3, audioCtxRef.current.currentTime, 0.1);
 
   }, [isAudioEnabled]);
+
+  // Handle Business Popup Silence (Mesa de Reunião)
+  useEffect(() => {
+    if (!isAudioEnabled || !audioCtxRef.current || !masterGainRef.current) return;
+    const time = audioCtxRef.current.currentTime;
+    
+    if (isBusinessPopupOpen) {
+      // Fade out de meio segundo para não dar estalo
+      masterGainRef.current.gain.setTargetAtTime(0, time, 0.2);
+    } else {
+      // Fade in restaurando o som
+      masterGainRef.current.gain.setTargetAtTime(1, time, 0.2);
+    }
+  }, [isBusinessPopupOpen, isAudioEnabled]);
 
   // Handle Menu Open/Close Cathedral Xylophone Loop Logic
   useEffect(() => {

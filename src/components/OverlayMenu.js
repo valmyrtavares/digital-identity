@@ -1,23 +1,96 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useMenu } from "@/context/MenuContext";
 
-// Textos em duas linhas, menores, com coordenadas para Desktop
+// Textos em duas linhas (Abstrato) e Texto Business (Real)
 const PROJECTS = [
-  { line1: "I. Genesis", line2: "Quântico", top: "15%", left: "10%", size: "text-2xl md:text-3xl", depth: 0.8 },
-  { line1: "II. Ressonância", line2: "do Vazio", top: "35%", right: "15%", size: "text-3xl md:text-4xl", depth: 1.2 },
-  { line1: "III. Horizontes", line2: "de Neon", top: "55%", left: "20%", size: "text-4xl md:text-5xl", depth: 1.5 },
-  { line1: "IV. Ecos", line2: "do Silêncio", top: "10%", right: "25%", size: "text-xl md:text-2xl", depth: 0.5 },
-  { line1: "V. Ondas", line2: "Cromáticas", top: "70%", right: "30%", size: "text-2xl md:text-4xl", depth: 1.1 },
-  { line1: "VI. Desvio", line2: "Temporal", top: "25%", left: "35%", size: "text-4xl md:text-6xl", depth: 2.0 },
-  { line1: "VII. Matéria", line2: "Escura", top: "80%", left: "15%", size: "text-xl md:text-3xl", depth: 0.6 },
-  { line1: "VIII. Fluxo", line2: "de Pragma", top: "85%", right: "15%", size: "text-2xl md:text-3xl", depth: 0.9 },
+  { line1: "I. Genesis", line2: "Quântico", business: "Websites", top: "15%", left: "10%", size: "text-2xl md:text-3xl", depth: 0.8 },
+  { line1: "II. Ressonância", line2: "do Vazio", business: "Landing Pages", top: "35%", right: "15%", size: "text-3xl md:text-4xl", depth: 1.2 },
+  { line1: "III. Horizontes", line2: "de Neon", business: "Soluções Customizadas", top: "55%", left: "20%", size: "text-4xl md:text-5xl", depth: 1.5 },
+  { line1: "IV. Ecos", line2: "do Silêncio", business: "Edição de Vídeo", top: "10%", right: "25%", size: "text-xl md:text-2xl", depth: 0.5 },
+  { line1: "V. Ondas", line2: "Cromáticas", business: "Meus Produtos", top: "70%", right: "30%", size: "text-2xl md:text-4xl", depth: 1.1 },
+  { line1: "VI. Desvio", line2: "Temporal", business: "ERP Gastronômico", top: "25%", left: "35%", size: "text-4xl md:text-6xl", depth: 2.0 },
+  { line1: "VII. Matéria", line2: "Escura", business: "Desenvolvedor Full Stack", top: "80%", left: "15%", size: "text-xl md:text-3xl", depth: 0.6 },
+  { line1: "VIII. Fluxo", line2: "de Pragma", business: "Consultoria Tech", top: "85%", right: "15%", size: "text-2xl md:text-3xl", depth: 0.9 },
 ];
 
+const GLITCH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;':,./<>?";
+
+const GlitchItem = ({ project, index, addToRefs }) => {
+  const [displayText, setDisplayText] = useState(`${project.line1} ${project.line2}`);
+  const [isHovered, setIsHovered] = useState(false);
+  const intervalRef = useRef(null);
+  const { openBusinessPopup } = useMenu();
+
+  const doGlitch = (targetText) => {
+    let iteration = 0;
+    clearInterval(intervalRef.current);
+    
+    intervalRef.current = setInterval(() => {
+      setDisplayText((prev) => {
+        return targetText
+          .split("")
+          .map((letter, i) => {
+            if (i < iteration) {
+              return targetText[i];
+            }
+            return GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+          })
+          .join("");
+      });
+      
+      if (iteration >= targetText.length) {
+        clearInterval(intervalRef.current);
+      }
+      iteration += 1 / 3; // Velocidade do glitch
+    }, 30);
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    doGlitch(project.business.toUpperCase());
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    doGlitch(`${project.line1} ${project.line2}`);
+  };
+
+  const handleClick = () => {
+    openBusinessPopup(project);
+  };
+
+  return (
+    <div
+      ref={(el) => addToRefs(el, index)}
+      className={`md:absolute my-6 md:my-0 flex flex-col cursor-pointer group ${project.size}`}
+      style={{
+        top: project.top,
+        left: project.left,
+        right: project.right,
+        transformStyle: "preserve-3d",
+        zIndex: Math.round(project.depth * 10),
+      }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+    >
+      <span className={`font-light tracking-widest transition-all duration-300 ${isHovered ? 'text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] font-mono font-bold tracking-tight' : 'text-transparent bg-clip-text bg-gradient-to-br from-white via-gray-300 to-indigo-900'}`}>
+        {isHovered ? displayText : project.line1}
+      </span>
+      {!isHovered && (
+        <span className="font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-500 transition-all duration-500 ml-8 md:ml-12 text-[0.7em]">
+          {project.line2}
+        </span>
+      )}
+    </div>
+  );
+};
+
 export default function OverlayMenu() {
-  const { isMenuOpen, toggleMenu } = useMenu();
+  const { isMenuOpen, toggleMenu, isBusinessPopupOpen } = useMenu();
   const overlayRef = useRef(null);
   const menuItemsRef = useRef([]);
   const lightsRef = useRef([]);
@@ -32,13 +105,11 @@ export default function OverlayMenu() {
     const tl = gsap.timeline();
 
     if (isMenuOpen) {
-      // Aberto: overlay fica visível (mas sem cor de fundo preta, totalmente transparente para a poeira)
       tl.to(overlayRef.current, {
         duration: 0.5,
         autoAlpha: 1,
         ease: "power2.inOut",
       })
-      // Projetos surgem num formato escalonado de profundidade (z-axis)
       .to(menuItemsRef.current, {
         duration: 1.5,
         z: 0,
@@ -48,8 +119,8 @@ export default function OverlayMenu() {
         stagger: 0.05,
         ease: "expo.out",
         onComplete: () => {
-          // Após entrarem, animação infinita altamente imprevisível
           menuItemsRef.current.forEach((el, i) => {
+            if (!el) return;
             const depth = PROJECTS[i].depth;
             const dirX = Math.random() > 0.5 ? 1 : -1;
             const dirY = Math.random() > 0.5 ? 1 : -1;
@@ -69,7 +140,6 @@ export default function OverlayMenu() {
           });
         }
       }, "-=0.3")
-      // Luzes espaciais aleatórias ascendem
       .to(lightsRef.current, {
         duration: 2,
         autoAlpha: Math.random() * 0.5 + 0.3,
@@ -77,8 +147,8 @@ export default function OverlayMenu() {
         stagger: 0.2,
         ease: "power2.out",
         onComplete: () => {
-          // Luzes flutuam aleatoriamente pela tela iluminando as letras e a poeira
           lightsRef.current.forEach((light) => {
+            if (!light) return;
             gsap.to(light, {
               x: () => (Math.random() - 0.5) * window.innerWidth * 0.8,
               y: () => (Math.random() - 0.5) * window.innerHeight * 0.8,
@@ -93,11 +163,9 @@ export default function OverlayMenu() {
       }, "-=1.5");
       
     } else {
-      // Parar as animações infinitas de flutuação para sair
-      menuItemsRef.current.forEach((el) => gsap.killTweensOf(el));
-      lightsRef.current.forEach((light) => gsap.killTweensOf(light));
+      menuItemsRef.current.forEach((el) => { if(el) gsap.killTweensOf(el) });
+      lightsRef.current.forEach((light) => { if(light) gsap.killTweensOf(light) });
       
-      // Fechando: itens e luzes somem
       tl.to(menuItemsRef.current, {
         duration: 0.4,
         z: -200,
@@ -130,22 +198,21 @@ export default function OverlayMenu() {
 
   return (
     <>
+      {/* Hide hamburger if business popup is open (cleaner UI) */}
       <button
         onClick={toggleMenu}
-        className="fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/5 bg-white/5 backdrop-blur-md flex flex-col items-center justify-center gap-1.5 transition-all duration-500 hover:bg-white/10 hover:border-white/20 group mix-blend-difference"
+        className={`fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/5 bg-white/5 backdrop-blur-md flex flex-col items-center justify-center gap-1.5 transition-all duration-500 hover:bg-white/10 hover:border-white/20 group mix-blend-difference ${isBusinessPopupOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
         <span className={`w-6 h-[1px] bg-white transition-all duration-300 ${isMenuOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
         <span className={`w-6 h-[1px] bg-white transition-all duration-300 ${isMenuOpen ? "opacity-0" : "opacity-100"}`} />
         <span className={`w-6 h-[1px] bg-white transition-all duration-300 ${isMenuOpen ? "-rotate-45 -translate-y-[7px]" : ""}`} />
       </button>
 
-      {/* Overlay com bg-transparent para ver a poeira 100% clara */}
       <div
         ref={overlayRef}
         className="fixed inset-0 z-50 bg-transparent pointer-events-auto perspective-1000 overflow-y-auto md:overflow-hidden"
         style={{ perspective: "1200px" }}
       >
-        {/* Luzes Dinâmicas Cósmicas */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
           {[1, 2, 3].map((_, i) => (
             <div
@@ -161,32 +228,9 @@ export default function OverlayMenu() {
           ))}
         </div>
 
-        {/* Container do Menu. No mobile vira flex-col (sem sobreposição). No Desktop vira espaço relativo vazio. */}
         <div className="relative w-full min-h-full flex flex-col items-start justify-center md:block px-8 py-24 md:p-0">
           {PROJECTS.map((project, index) => (
-            <div
-              key={index}
-              ref={(el) => addToRefs(el, index)}
-              // classes: flex-col no mobile com margens. absolute no desktop usando style top/left.
-              className={`md:absolute my-6 md:my-0 flex flex-col cursor-pointer group ${project.size}`}
-              style={{
-                // Somente aplicamos top/left/right em telas maiores via variável CSS (ignorado no mobile pois é static)
-                top: project.top,
-                left: project.left,
-                right: project.right,
-                transformStyle: "preserve-3d",
-                zIndex: Math.round(project.depth * 10),
-              }}
-            >
-              {/* Linha 1 */}
-              <span className="font-light tracking-widest text-transparent bg-clip-text bg-gradient-to-br from-white via-gray-300 to-indigo-900 transition-colors duration-500 group-hover:to-pink-400">
-                {project.line1}
-              </span>
-              {/* Linha 2 (Recuada e Menor) */}
-              <span className="font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-500 transition-all duration-500 group-hover:tracking-normal group-hover:to-pink-500 ml-8 md:ml-12 text-[0.7em]">
-                {project.line2}
-              </span>
-            </div>
+            <GlitchItem key={index} project={project} index={index} addToRefs={addToRefs} />
           ))}
         </div>
       </div>
