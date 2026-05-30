@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, MeshDistortMaterial, Environment, Sparkles } from '@react-three/drei';
+import { Float, MeshDistortMaterial, Environment, Sparkles, Text, Html, Ring, Plane } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMenu } from "@/context/MenuContext";
 
@@ -50,11 +50,17 @@ function InteractiveShape() {
       const targetScrollZ = scrollYRef.current * 0.002;
       meshRef.current.rotation.z = THREE.MathUtils.lerp(meshRef.current.rotation.z, targetScrollZ, 0.05);
       
+      // Lógica de fade out baseado no scroll (após 2.5x a altura da tela)
+      const fadeThreshold = window.innerHeight * 2.5;
+      const scrollY = scrollYRef.current;
+      const fadeProgress = Math.max(0, Math.min((scrollY - fadeThreshold) / (window.innerHeight * 0.5), 1));
+      
       // Fazer o objeto seguir sutilmente o mouse (Esquerda, Direita e Profundidade)
       const lerpFactor = clicked ? 0.15 : 0.05;
       
       const targetX = (state.pointer.x * state.viewport.width) / 6;
-      const targetY = (state.pointer.y * state.viewport.height) / 6;
+      // Adiciona o deslocamento para cima quando faz scroll (fadeProgress * 10)
+      const targetY = ((state.pointer.y * state.viewport.height) / 6) + (fadeProgress * 15);
       // Empurra o objeto pro fundo (eixo Z) dependendo de quão longe o mouse está do centro
       const targetZ = -Math.abs(state.pointer.x * 2) - Math.abs(state.pointer.y * 2);
 
@@ -64,7 +70,8 @@ function InteractiveShape() {
       
       // Animação fluida das propriedades do material (distorção e escala)
       const targetDistort = clicked ? 1.5 : hovered ? 0.8 : 0.4;
-      const targetScale = clicked ? 1.5 : hovered ? 1.2 : 1.0;
+      // Encolhe a bola conforme faz scroll
+      const targetScale = (clicked ? 1.5 : hovered ? 1.2 : 1.0) * (1 - fadeProgress);
       
       materialRef.current.distort = THREE.MathUtils.lerp(materialRef.current.distort, targetDistort, 0.1);
       meshRef.current.scale.setScalar(THREE.MathUtils.lerp(meshRef.current.scale.x, targetScale, 0.1));
@@ -136,6 +143,205 @@ function Stardust() {
   );
 }
 
+const ZODIAC_SIGNS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
+
+function ZodiacRing() {
+  const groupRef = useRef();
+  const wheelBgRef = useRef();
+  const textGroupRef = useRef();
+  
+  // Rastrear scroll localmente
+  const scrollYRef = useRef(0);
+  useEffect(() => {
+    const handleScroll = () => { scrollYRef.current = window.scrollY; };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Gerar posições aleatórias iniciais
+  const randomPositions = useMemo(() => {
+    return ZODIAC_SIGNS.map(() => ({
+      x: (Math.random() - 0.5) * 40,
+      y: (Math.random() - 0.5) * 40,
+      z: (Math.random() - 0.5) * 20 - 10,
+      rotZ: Math.random() * Math.PI * 2
+    }));
+  }, []);
+
+  // Preparar os elementos da roda astrológica (casas)
+  const wheelElements = useMemo(() => {
+    const lines = [];
+    for (let i = 0; i < 12; i++) {
+      // Linhas principais que separam as casas
+      const angle = (i / 12) * Math.PI * 2 + (Math.PI / 12);
+      const length = 1.2;
+      const centerX = Math.cos(angle) * (0.9 + length / 2);
+      const centerY = Math.sin(angle) * (0.9 + length / 2);
+      
+      // Para as direções cardeais, faremos linhas duplas mais sofisticadas
+      const isCardinal = i % 3 === 0;
+      
+      if (isCardinal) {
+        // Linha dupla
+        const offset = 0.015;
+        lines.push(
+          <Plane key={`c1-${i}`} args={[length, 0.01]} position={[centerX - Math.sin(angle)*offset, centerY + Math.cos(angle)*offset, 0]} rotation={[0, 0, angle]}>
+            <meshBasicMaterial color="#a78bfa" transparent opacity={0} userData={{ baseOpacity: 0.6 }} />
+          </Plane>,
+          <Plane key={`c2-${i}`} args={[length, 0.01]} position={[centerX + Math.sin(angle)*offset, centerY - Math.cos(angle)*offset, 0]} rotation={[0, 0, angle]}>
+            <meshBasicMaterial color="#a78bfa" transparent opacity={0} userData={{ baseOpacity: 0.6 }} />
+          </Plane>
+        );
+      } else {
+        // Linha simples
+        lines.push(
+          <Plane key={`s-${i}`} args={[length, 0.01]} position={[centerX, centerY, 0]} rotation={[0, 0, angle]}>
+            <meshBasicMaterial color="#8b5cf6" transparent opacity={0} userData={{ baseOpacity: 0.3 }} />
+          </Plane>
+        );
+      }
+    }
+    return lines;
+  }, []);
+
+  const [oracleVisible, setOracleVisible] = useState(false);
+
+  useFrame((state, delta) => {
+    if (!groupRef.current || !textGroupRef.current) return;
+    
+    // O evento aproveita o espaço de scroll (500vh no total)
+    const startScroll = window.innerHeight * 2.8;
+    const endScroll = window.innerHeight * 4.8;
+    
+    let progress = 0;
+    if (scrollYRef.current > startScroll) {
+      progress = Math.min((scrollYRef.current - startScroll) / (endScroll - startScroll), 1);
+    }
+    
+    // Rotaciona o grupo inteiro suavemente sem pressa
+    groupRef.current.rotation.z -= delta * 0.15;
+    
+    const radius = 1.5;
+    const texts = textGroupRef.current.children;
+    
+    // Função Easing Cubic Out para um fim bem mais suave
+    const easeProgress = 1 - Math.pow(1 - progress, 3);
+    
+    for (let i = 0; i < 12; i++) {
+      const mesh = texts[i];
+      if (!mesh) continue;
+      
+      const angle = (i / 12) * Math.PI * 2;
+      
+      const targetX = Math.cos(angle) * radius;
+      const targetY = Math.sin(angle) * radius;
+      const targetZ = 0;
+      
+      // Movimento de "dança" em espiral até o ponto de ancoragem final
+      const spiralScale = (1 - easeProgress) * 5;
+      const spiralAngle = easeProgress * Math.PI * 8 + randomPositions[i].rotZ;
+      
+      const dx = Math.cos(spiralAngle) * spiralScale;
+      const dy = Math.sin(spiralAngle) * spiralScale;
+      
+      // Balanço vertical flutuante contínuo simulando ar/3d independente do scroll
+      const floatOffset = Math.sin(state.clock.elapsedTime * 2 + i) * 0.3;
+      
+      const currentX = THREE.MathUtils.lerp(randomPositions[i].x, targetX, easeProgress) + dx;
+      const currentY = THREE.MathUtils.lerp(randomPositions[i].y, targetY, easeProgress) + dy;
+      const currentZ = THREE.MathUtils.lerp(randomPositions[i].z, targetZ, easeProgress) + floatOffset;
+      
+      mesh.position.set(currentX, currentY, currentZ);
+      
+      // Ajusta a opacidade durante a dança
+      if (mesh.material) {
+        mesh.material.opacity = Math.min(easeProgress * 1.5, 1);
+      }
+      
+      // Rotação para que os signos fiquem legíveis, compensando o giro da roda
+      mesh.rotation.z = -groupRef.current.rotation.z;
+    }
+    
+    // Anima a roda (casas dos signos)
+    if (wheelBgRef.current) {
+      // Roda aparece devagar na fase final do scroll (últimos 30%)
+      const bgOpacity = Math.max(0, (easeProgress - 0.7) * 3.33);
+      const bgScale = 0.5 + easeProgress * 0.5;
+      
+      wheelBgRef.current.scale.setScalar(bgScale);
+      
+      wheelBgRef.current.traverse((child) => {
+        if (child.isMesh && child.material && child.material.userData && child.material.userData.baseOpacity !== undefined) {
+          child.material.opacity = bgOpacity * child.material.userData.baseOpacity;
+        }
+      });
+    }
+    
+    if (progress > 0.95 !== oracleVisible) {
+      setOracleVisible(progress > 0.95);
+    }
+  });
+
+  return (
+    <group>
+      <group ref={groupRef}>
+        <group ref={wheelBgRef}>
+          <Ring args={[2.1, 2.12, 64]}>
+            <meshBasicMaterial color="#8b5cf6" transparent opacity={0} userData={{ baseOpacity: 0.6 }} side={THREE.DoubleSide} />
+          </Ring>
+          {/* Aro decorativo bem fino externo */}
+          <Ring args={[2.15, 2.155, 64]}>
+            <meshBasicMaterial color="#a78bfa" transparent opacity={0} userData={{ baseOpacity: 0.4 }} side={THREE.DoubleSide} />
+          </Ring>
+          <Ring args={[0.9, 0.92, 64]}>
+            <meshBasicMaterial color="#8b5cf6" transparent opacity={0} userData={{ baseOpacity: 0.6 }} side={THREE.DoubleSide} />
+          </Ring>
+          {wheelElements}
+        </group>
+
+        <group ref={textGroupRef}>
+          {ZODIAC_SIGNS.map((sign, i) => (
+            <Text
+              key={i}
+              color="#a78bfa"
+              fontSize={0.4}
+              anchorX="center"
+              anchorY="middle"
+              transparent
+              opacity={0}
+            >
+              {sign}
+            </Text>
+          ))}
+        </group>
+      </group>
+      
+      <Html
+        position={[0, 0, 0]}
+        center
+        style={{
+          opacity: oracleVisible ? 1 : 0,
+          pointerEvents: oracleVisible ? 'auto' : 'none',
+          transition: 'opacity 1s ease-in-out',
+        }}
+      >
+        <div className="flex flex-col items-center justify-center text-center">
+          <a 
+            href="#"
+            className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300 text-xl md:text-2xl font-light tracking-widest uppercase hover:scale-110 transition-transform duration-500 leading-tight drop-shadow-[0_0_15px_rgba(139,92,246,0.8)] max-w-[120px] md:max-w-[150px] mx-auto block"
+            onClick={(e) => {
+              e.preventDefault();
+              alert("O oráculo revela: O futuro da web é tridimensional e contínuo.");
+            }}
+          >
+            Consulte<br/>O Oráculo
+          </a>
+        </div>
+      </Html>
+    </group>
+  );
+}
+
 // O Canvas principal que fica fixo no fundo
 export default function Scene() {
   const { isMenuOpen } = useMenu();
@@ -147,6 +353,7 @@ export default function Scene() {
         <directionalLight position={[10, 10, 5]} intensity={1} />
         
         <Stardust />
+        <ZodiacRing />
         {!isMenuOpen && <InteractiveShape />}
         
         {/* Adiciona reflexos e iluminação de ambiente premium */}

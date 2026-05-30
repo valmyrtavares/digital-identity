@@ -88,6 +88,11 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Seção 4 - Zodíaco e Oráculo (Espaço extra para scroll) */}
+        <section className="min-h-[500vh] relative z-10 pointer-events-auto">
+          {/* O conteúdo visual 3D e o texto estão no componente Scene */}
+        </section>
+
         {/* Footer */}
         <footer className="py-12 text-center bg-black">
           <p className="text-gray-600 font-light text-sm">
