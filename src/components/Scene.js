@@ -143,7 +143,8 @@ function Stardust() {
   );
 }
 
-const ZODIAC_SIGNS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
+// Adicionado \uFE0E para forçar o navegador a renderizar como texto (monocromático, sem formato de emoji "moeda")
+const ZODIAC_SIGNS = ['♈\uFE0E', '♉\uFE0E', '♊\uFE0E', '♋\uFE0E', '♌\uFE0E', '♍\uFE0E', '♎\uFE0E', '♏\uFE0E', '♐\uFE0E', '♑\uFE0E', '♒\uFE0E', '♓\uFE0E'];
 
 function ZodiacRing() {
   const groupRef = useRef();
@@ -218,8 +219,16 @@ function ZodiacRing() {
       progress = Math.min((scrollYRef.current - startScroll) / (endScroll - startScroll), 1);
     }
     
-    // Rotaciona o grupo inteiro suavemente sem pressa
-    groupRef.current.rotation.z -= delta * 0.15;
+    // A roda aparece e já começa rodar assim que o shape principal começa a subir (2.5)
+    const wheelStartScroll = window.innerHeight * 2.5;
+    let wheelProgress = 0;
+    if (scrollYRef.current > wheelStartScroll) {
+       wheelProgress = Math.min((scrollYRef.current - wheelStartScroll) / (window.innerHeight * 0.5), 1);
+    }
+    
+    // Rotaciona ativamente com o scroll para dar fisicalidade
+    const targetRotation = -scrollYRef.current * 0.0015;
+    groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetRotation, 0.05);
     
     const radius = 1.5;
     const texts = textGroupRef.current.children;
@@ -262,11 +271,11 @@ function ZodiacRing() {
       mesh.rotation.z = -groupRef.current.rotation.z;
     }
     
-    // Anima a roda (casas dos signos)
+    // Anima a roda (casas dos signos) desde o começo do evento
     if (wheelBgRef.current) {
-      // Roda aparece devagar na fase final do scroll (últimos 30%)
-      const bgOpacity = Math.max(0, (easeProgress - 0.7) * 3.33);
-      const bgScale = 0.5 + easeProgress * 0.5;
+      // A roda aparece com o wheelProgress (bem antes de formarem o círculo)
+      const bgOpacity = wheelProgress;
+      const bgScale = 0.8 + wheelProgress * 0.2; // Escala leve, pois já nasce meio grande
       
       wheelBgRef.current.scale.setScalar(bgScale);
       
