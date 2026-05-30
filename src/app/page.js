@@ -13,7 +13,7 @@ export default function Home() {
     <main className="relative w-full min-h-screen text-white font-sans overflow-hidden">
       {/* O Canvas 3D fica fixo no fundo */}
       <Scene />
-      
+
       {/* Controle de Áudio Generativo */}
       <AudioVisualizer />
 
@@ -25,7 +25,7 @@ export default function Home() {
 
       {/* Conteúdo rolável por cima da cena (oculto quando o menu abre) */}
       <div className={`relative z-10 w-full pointer-events-none transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 hidden' : 'opacity-100'}`}>
-        
+
         {/* Seção 1 - Hero */}
         <section className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
           <AnimatedText>
@@ -48,10 +48,10 @@ export default function Home() {
         {/* Seção 2 - Sobre */}
         {/* Removido o bg-gradient da section para não escurecer o fundo indevidamente */}
         <section className="flex flex-col items-start justify-center min-h-screen p-8 md:p-24">
-          {/* AQUI VOCÊ CONTROLA A OPACIDADE: O valor 0.15 no rgba controla a transparência do fundo */}
-          <div 
-            className="backdrop-blur-lg p-8 md:p-12 rounded-3xl border border-white/10 max-w-4xl shadow-2xl"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.15)' }}
+          {/* AQUI VOCÊ CONTROLA A OPACIDADE E O BLUR: O valor 0.05 com o fundo branco gera o "vidro" sem parecer uma caixa preta sólida */}
+          <div
+            className="backdrop-blur-sm p-8 md:p-12 rounded-3xl border border-white/10 max-w-4xl shadow-2xl"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0)' }}
           >
             <AnimatedText direction="left">
               <h2 className="text-4xl md:text-6xl font-semibold mb-8">
@@ -68,10 +68,10 @@ export default function Home() {
 
         {/* Seção 3 - Serviços */}
         <section className="flex flex-col items-end justify-center min-h-screen p-8 md:p-24 text-right">
-          {/* AQUI VOCÊ CONTROLA A OPACIDADE: O valor 0.15 no rgba controla a transparência do fundo */}
-          <div 
-            className="backdrop-blur-lg p-8 md:p-12 rounded-3xl border border-white/10 max-w-xl shadow-2xl"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.15)' }}
+          {/* AQUI VOCÊ CONTROLA A OPACIDADE E O BLUR: O valor 0.05 com o fundo branco gera o "vidro" sem parecer uma caixa preta sólida */}
+          <div
+            className="backdrop-blur-sm p-8 md:p-12 rounded-3xl border border-white/10 max-w-xl shadow-2xl"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
           >
             <AnimatedText direction="right">
               <h2 className="text-4xl md:text-6xl font-semibold mb-8">

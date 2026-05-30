@@ -318,7 +318,7 @@ function ZodiacRing() {
                   style={{
                     fontFamily: '"Segoe UI Symbol", "Apple Symbols", sans-serif',
                     color: '#a78bfa',
-                    fontSize: '1.2rem',
+                    fontSize: '1rem',
                     opacity: 0,
                     userSelect: 'none',
                     lineHeight: 1
