@@ -150,6 +150,7 @@ function ZodiacRing() {
   const groupRef = useRef();
   const wheelBgRef = useRef();
   const textGroupRef = useRef();
+  const htmlRefs = useRef([]);
   
   // Rastrear scroll localmente
   const scrollYRef = useRef(0);
@@ -262,12 +263,12 @@ function ZodiacRing() {
       
       mesh.position.set(currentX, currentY, currentZ);
       
-      // Ajusta a opacidade durante a dança
-      if (mesh.material) {
-        mesh.material.opacity = Math.min(easeProgress * 1.5, 1);
+      // Ajusta a opacidade durante a dança (agora via HTML ref)
+      if (htmlRefs.current[i]) {
+        htmlRefs.current[i].style.opacity = Math.min(easeProgress * 1.5, 1);
       }
       
-      // Rotação para que os signos fiquem legíveis, compensando o giro da roda
+      // Rotação para que os signos fiquem legíveis
       mesh.rotation.z = -groupRef.current.rotation.z;
     }
     
@@ -310,17 +311,23 @@ function ZodiacRing() {
 
         <group ref={textGroupRef}>
           {ZODIAC_SIGNS.map((sign, i) => (
-            <Text
-              key={i}
-              color="#a78bfa"
-              fontSize={0.4}
-              anchorX="center"
-              anchorY="middle"
-              transparent
-              opacity={0}
-            >
-              {sign}
-            </Text>
+            <group key={i}>
+              <Html transform center zIndexRange={[100, 0]}>
+                <div 
+                  ref={el => htmlRefs.current[i] = el}
+                  style={{
+                    fontFamily: '"Segoe UI Symbol", "Apple Symbols", sans-serif',
+                    color: '#a78bfa',
+                    fontSize: '1.2rem',
+                    opacity: 0,
+                    userSelect: 'none',
+                    lineHeight: 1
+                  }}
+                >
+                  {sign}
+                </div>
+              </Html>
+            </group>
           ))}
         </group>
       </group>

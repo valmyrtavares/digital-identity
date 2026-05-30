@@ -39,52 +39,65 @@ export default function Home() {
             </p>
           </AnimatedText>
           <AnimatedText className="mt-12">
-            <div className="text-sm tracking-widest uppercase text-gray-500 animate-pulse">
+            <div className="text-base tracking-[0.2em] font-medium uppercase text-purple-200 animate-bounce drop-shadow-[0_0_10px_rgba(167,139,250,0.8)]">
               [ Role para baixo ]
             </div>
           </AnimatedText>
         </section>
 
         {/* Seção 2 - Sobre */}
-        <section className="flex flex-col items-start justify-center min-h-screen p-8 md:p-24 bg-gradient-to-b from-transparent to-black/50">
-          <AnimatedText>
-            <h2 className="text-4xl md:text-6xl font-semibold mb-8">
-              A Arte do <span className="italic text-indigo-400">Creative Coding</span>.
-            </h2>
-          </AnimatedText>
-          <AnimatedText>
-            <p className="text-lg md:text-xl text-gray-300 max-w-3xl leading-relaxed mb-6 font-light">
-              Agências como a Resn nos mostram que a web é um canvas em branco. Utilizando WebGL, Shaders e algoritmos avançados, criamos sites que não apenas entregam informação, mas contam uma história de forma inesquecível.
-            </p>
-          </AnimatedText>
+        {/* Removido o bg-gradient da section para não escurecer o fundo indevidamente */}
+        <section className="flex flex-col items-start justify-center min-h-screen p-8 md:p-24">
+          {/* AQUI VOCÊ CONTROLA A OPACIDADE: O valor 0.15 no rgba controla a transparência do fundo */}
+          <div 
+            className="backdrop-blur-lg p-8 md:p-12 rounded-3xl border border-white/10 max-w-4xl shadow-2xl"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.15)' }}
+          >
+            <AnimatedText direction="left">
+              <h2 className="text-4xl md:text-6xl font-semibold mb-8">
+                A Arte do <span className="italic text-indigo-400">Creative Coding</span>.
+              </h2>
+            </AnimatedText>
+            <AnimatedText direction="left">
+              <p className="text-lg md:text-xl text-gray-300 max-w-3xl leading-relaxed mb-6 font-light">
+                Agências como a Resn nos mostram que a web é um canvas em branco. Utilizando WebGL, Shaders e algoritmos avançados, criamos sites que não apenas entregam informação, mas contam uma história de forma inesquecível.
+              </p>
+            </AnimatedText>
+          </div>
         </section>
 
         {/* Seção 3 - Serviços */}
         <section className="flex flex-col items-end justify-center min-h-screen p-8 md:p-24 text-right">
-          <AnimatedText>
-            <h2 className="text-4xl md:text-6xl font-semibold mb-8">
-              Nossas Tecnologias
-            </h2>
-          </AnimatedText>
-          <div className="space-y-6 max-w-xl">
-            <AnimatedText>
-              <div className="border-b border-white/20 pb-4">
-                <h3 className="text-2xl font-medium mb-2 text-indigo-300">Three.js & WebGL</h3>
-                <p className="text-gray-400 font-light">Renderização 3D acelerada por hardware direto no navegador.</p>
-              </div>
+          {/* AQUI VOCÊ CONTROLA A OPACIDADE: O valor 0.15 no rgba controla a transparência do fundo */}
+          <div 
+            className="backdrop-blur-lg p-8 md:p-12 rounded-3xl border border-white/10 max-w-xl shadow-2xl"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.15)' }}
+          >
+            <AnimatedText direction="right">
+              <h2 className="text-4xl md:text-6xl font-semibold mb-8">
+                Nossas Tecnologias
+              </h2>
             </AnimatedText>
-            <AnimatedText>
-              <div className="border-b border-white/20 pb-4">
-                <h3 className="text-2xl font-medium mb-2 text-purple-300">GSAP Animations</h3>
-                <p className="text-gray-400 font-light">Controle absoluto sobre as linhas do tempo e gatilhos de scroll complexos.</p>
-              </div>
-            </AnimatedText>
-            <AnimatedText>
-              <div className="border-b border-white/20 pb-4">
-                <h3 className="text-2xl font-medium mb-2 text-pink-300">Next.js & React</h3>
-                <p className="text-gray-400 font-light">A fundação robusta para roteamento e escalabilidade moderna.</p>
-              </div>
-            </AnimatedText>
+            <div className="space-y-6">
+              <AnimatedText direction="right">
+                <div className="border-b border-white/20 pb-4">
+                  <h3 className="text-2xl font-medium mb-2 text-indigo-300">Three.js & WebGL</h3>
+                  <p className="text-gray-400 font-light">Renderização 3D acelerada por hardware direto no navegador.</p>
+                </div>
+              </AnimatedText>
+              <AnimatedText direction="right">
+                <div className="border-b border-white/20 pb-4">
+                  <h3 className="text-2xl font-medium mb-2 text-purple-300">GSAP Animations</h3>
+                  <p className="text-gray-400 font-light">Controle absoluto sobre as linhas do tempo e gatilhos de scroll complexos.</p>
+                </div>
+              </AnimatedText>
+              <AnimatedText direction="right">
+                <div className="border-b border-white/20 pb-4">
+                  <h3 className="text-2xl font-medium mb-2 text-pink-300">Next.js & React</h3>
+                  <p className="text-gray-400 font-light">A fundação robusta para roteamento e escalabilidade moderna.</p>
+                </div>
+              </AnimatedText>
+            </div>
           </div>
         </section>
 

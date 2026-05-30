@@ -9,37 +9,45 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export default function AnimatedText({ children, className = "" }) {
+export default function AnimatedText({ children, className = "", direction = "up" }) {
   const textRef = useRef(null);
 
   useEffect(() => {
     const el = textRef.current;
+    
+    let fromState, toState;
 
-    gsap.fromTo(
+    if (direction === "up") {
+      fromState = { y: 100, opacity: 0, rotationX: -45 };
+      toState = { y: 0, opacity: 1, rotationX: 0, duration: 1.5, ease: "power3.out" };
+    } else if (direction === "left") {
+      // Texto na esquerda, vem da esquerda (curta distância)
+      fromState = { x: -150, opacity: 0, filter: "blur(15px)" };
+      toState = { x: 0, opacity: 1, filter: "blur(0px)", duration: 1.5, ease: "power3.out" };
+    } else if (direction === "right") {
+      // Texto na direita, vem da direita (curta distância)
+      fromState = { x: 150, opacity: 0, filter: "blur(15px)" };
+      toState = { x: 0, opacity: 1, filter: "blur(0px)", duration: 1.5, ease: "power3.out" };
+    }
+
+    const anim = gsap.fromTo(
       el,
+      fromState,
       {
-        y: 100,
-        opacity: 0,
-        rotationX: -45,
-      },
-      {
-        y: 0,
-        opacity: 1,
-        rotationX: 0,
-        duration: 1.5,
-        ease: "power3.out",
+        ...toState,
         scrollTrigger: {
           trigger: el,
-          start: "top 85%", // Inicia a animação quando o topo do elemento atinge 85% da tela
+          start: "top 85%",
           toggleActions: "play none none reverse"
         }
       }
     );
 
     return () => {
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      if (anim.scrollTrigger) anim.scrollTrigger.kill();
+      anim.kill();
     };
-  }, []);
+  }, [direction]);
 
   return (
     <div ref={textRef} className={`will-change-transform ${className}`} style={{ perspective: '1000px' }}>
