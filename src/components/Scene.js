@@ -10,6 +10,7 @@ import { useMenu } from "@/context/MenuContext";
 function InteractiveShape() {
   const meshRef = useRef();
   const materialRef = useRef();
+  const { toggleMenu } = useMenu();
   
   // Estados de interação
   const [hovered, setHover] = useState(false);
@@ -86,6 +87,7 @@ function InteractiveShape() {
     <Float speed={clicked ? 5 : 2} rotationIntensity={clicked ? 4 : 1.5} floatIntensity={clicked ? 4 : 2}>
       <mesh 
         ref={meshRef}
+        onClick={() => { toggleMenu(); }}
         onPointerOver={() => {
           setHover(true);
           document.body.style.cursor = 'pointer';
@@ -146,7 +148,7 @@ function Stardust() {
 // Adicionado \uFE0E para forçar o navegador a renderizar como texto (monocromático, sem formato de emoji "moeda")
 const ZODIAC_SIGNS = ['♈\uFE0E', '♉\uFE0E', '♊\uFE0E', '♋\uFE0E', '♌\uFE0E', '♍\uFE0E', '♎\uFE0E', '♏\uFE0E', '♐\uFE0E', '♑\uFE0E', '♒\uFE0E', '♓\uFE0E'];
 
-function ZodiacRing() {
+function ZodiacRing({ toggleMenu }) {
   const groupRef = useRef();
   const wheelBgRef = useRef();
   const textGroupRef = useRef();
@@ -331,36 +333,14 @@ function ZodiacRing() {
           ))}
         </group>
       </group>
-      
-      <Html
-        position={[0, 0, 0]}
-        center
-        style={{
-          opacity: oracleVisible ? 1 : 0,
-          pointerEvents: oracleVisible ? 'auto' : 'none',
-          transition: 'opacity 1s ease-in-out',
-        }}
-      >
-        <div className="flex flex-col items-center justify-center text-center">
-          <a 
-            href="#"
-            className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300 text-xl md:text-2xl font-light tracking-widest uppercase hover:scale-110 transition-transform duration-500 leading-tight drop-shadow-[0_0_15px_rgba(139,92,246,0.8)] max-w-[120px] md:max-w-[150px] mx-auto block"
-            onClick={(e) => {
-              e.preventDefault();
-              alert("O oráculo revela: O futuro da web é tridimensional e contínuo.");
-            }}
-          >
-            Consulte<br/>O Oráculo
-          </a>
-        </div>
-      </Html>
+
     </group>
   );
 }
 
 // O Canvas principal que fica fixo no fundo
 export default function Scene() {
-  const { isMenuOpen } = useMenu();
+  const { isMenuOpen, toggleMenu } = useMenu();
 
   return (
     <div className="fixed top-0 left-0 w-full h-full z-[-1] bg-[#050505]">
@@ -369,7 +349,7 @@ export default function Scene() {
         <directionalLight position={[10, 10, 5]} intensity={1} />
         
         <Stardust />
-        <ZodiacRing />
+        <ZodiacRing toggleMenu={toggleMenu} />
         {!isMenuOpen && <InteractiveShape />}
         
         {/* Adiciona reflexos e iluminação de ambiente premium */}
