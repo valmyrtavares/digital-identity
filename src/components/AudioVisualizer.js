@@ -5,31 +5,28 @@ import { useMenu } from "@/context/MenuContext";
 
 export default function AudioVisualizer() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const audioCtxRef = useRef(null);
   const masterGainRef = useRef(null);
   const { isMenuOpen, isBusinessPopupOpen } = useMenu();
   
-  // Drone refs (Grave central)
-  const osc1Ref = useRef(null);
-  const osc2Ref = useRef(null);
-  const droneFilterRef = useRef(null);
-  const droneGainRef = useRef(null);
-
-  // Glass/Shatter refs (Cacos de vidro agudos)
-  const glassOscRef = useRef(null);
-  const glassFilterRef = useRef(null);
-  const glassGainRef = useRef(null);
+  // Real Drum Loop refs
+  const drumMasterGainRef = useRef(null);
+  const drumFilterRef = useRef(null);
+  const drumBufferRef = useRef(null);
+  const drumSourceRef = useRef(null);
 
   // Cathedral Xylophone refs (Menu aberto)
-  const xyloInputRef = useRef(null); // Nó de entrada para a catedral
+  const xyloInputRef = useRef(null); 
   const cathedralMasterGainRef = useRef(null);
-  const cathedralLfoGainRef = useRef(null); // Novo: Modulador do volume da catedral
+  const cathedralLfoGainRef = useRef(null); 
   const feedbackGainRef = useRef(null);
-  const lfoGainRef = useRef(null);
 
   // Interaction refs
   const isDraggingRef = useRef(false);
   const lastMousePosRef = useRef({ x: 0, y: 0, time: 0 });
+  const cursorRef = useRef(null);
 
   // Initialize Audio Context when enabled
   useEffect(() => {
@@ -45,7 +42,7 @@ export default function AudioVisualizer() {
       const ctx = new AudioContext();
       audioCtxRef.current = ctx;
 
-      // MASTER GAIN E COMPRESSOR (Evitar estouro de volume e silenciar globos)
+      // MASTER GAIN E COMPRESSOR (Evitar estouro de volume)
       const compressor = ctx.createDynamicsCompressor();
       compressor.threshold.value = -12;
       compressor.knee.value = 30;
@@ -60,46 +57,18 @@ export default function AudioVisualizer() {
       masterGainRef.current = masterGain;
 
       // ============================================
-      // 1. DRONE SYNTH (Sintetizador Grave/Central)
+      // 1. REAL DRUM LOOP (Áudio de verdade)
       // ============================================
-      const droneGain = ctx.createGain();
-      droneGain.gain.value = 0; 
-      droneGain.connect(masterGain);
-      droneGainRef.current = droneGain;
+      const drumMasterGain = ctx.createGain();
+      drumMasterGain.gain.value = 0.8;
+      drumMasterGain.connect(masterGain);
+      drumMasterGainRef.current = drumMasterGain;
 
-      const droneFilter = ctx.createBiquadFilter();
-      droneFilter.type = "lowpass";
-      droneFilter.frequency.value = 400; 
-      droneFilter.connect(droneGain);
-      droneFilterRef.current = droneFilter;
-
-      const osc1 = ctx.createOscillator();
-      osc1.type = "sine";
-      osc1.frequency.value = 65.41; // C2 (Root)
-      osc1.connect(droneFilter);
-      osc1.start();
-      osc1Ref.current = osc1;
-
-      const osc2 = ctx.createOscillator();
-      osc2.type = "triangle";
-      osc2.frequency.value = 65.8; // Detuned
-      osc2.connect(droneFilter);
-      osc2.start();
-      osc2Ref.current = osc2;
-
-      // LFO para Oscilação "Respirando"
-      const lfoOsc = ctx.createOscillator();
-      lfoOsc.type = "sine";
-      lfoOsc.frequency.value = 0.3; 
-      
-      const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 3; 
-      lfoGainRef.current = lfoGain;
-      
-      lfoOsc.connect(lfoGain);
-      lfoGain.connect(osc1.frequency);
-      lfoGain.connect(osc2.frequency);
-      lfoOsc.start();
+      const drumFilter = ctx.createBiquadFilter();
+      drumFilter.type = 'lowpass';
+      drumFilter.frequency.value = 5000;
+      drumFilter.connect(drumMasterGain);
+      drumFilterRef.current = drumFilter;
 
       // ============================================
       // 2. CATHEDRAL REVERB NETWORK (Reverb Matemático)
@@ -118,177 +87,174 @@ export default function AudioVisualizer() {
       delayNode.delayTime.value = 1.5; // 1.5s delay
       
       const feedbackGain = ctx.createGain();
-      feedbackGain.gain.value = 0.65; // Reduzido de 0.85 para 0.65 para evitar acúmulo extremo
+      feedbackGain.gain.value = 0.65;
       feedbackGainRef.current = feedbackGain;
       
-      // Filtro Lowpass dentro do loop de feedback simula a perda de agudos na catedral
       const echoFilter = ctx.createBiquadFilter();
       echoFilter.type = "lowpass";
       echoFilter.frequency.value = 1000;
       
-      // Conexões da rede de reverb
       xyloInput.connect(delayNode);
       delayNode.connect(echoFilter);
       echoFilter.connect(feedbackGain);
       feedbackGain.connect(delayNode);
       
-      // O som limpo (dry) e o som reverberado (wet) vão para o master da catedral
       delayNode.connect(cathedralMasterGain);
       xyloInput.connect(cathedralMasterGain);
 
-      // CATHEDRAL BREATHER (LFO para aumentar e diminuir o volume master da catedral lentamente)
+      // CATHEDRAL BREATHER (LFO volume oscilation)
       const catLfo = ctx.createOscillator();
       catLfo.type = "sine";
-      catLfo.frequency.value = 0.05; // Ciclo super lento de 20 segundos
+      catLfo.frequency.value = 0.05; 
       
       const catLfoGain = ctx.createGain();
-      catLfoGain.gain.value = 0; // Começa desligado
+      catLfoGain.gain.value = 0; 
       cathedralLfoGainRef.current = catLfoGain;
       
       catLfo.connect(catLfoGain);
       catLfoGain.connect(cathedralMasterGain.gain);
       catLfo.start();
-
-      // ============================================
-      // 3. GLASS SYNTH (Agudos de Poeira/Cacos)
-      // ============================================
-      const glassGain = ctx.createGain();
-      glassGain.gain.value = 0; 
-      glassGain.connect(masterGain);
-      glassGainRef.current = glassGain;
-
-      const glassFilter = ctx.createBiquadFilter();
-      glassFilter.type = "highpass"; 
-      glassFilter.frequency.value = 2000;
-      glassFilter.connect(glassGain);
-      glassFilterRef.current = glassFilter;
-
-      const glassOsc = ctx.createOscillator();
-      glassOsc.type = "square"; 
-      glassOsc.frequency.value = 1200; 
-      glassOsc.connect(glassFilter);
-      glassOsc.start();
-      glassOscRef.current = glassOsc;
     }
 
     if (audioCtxRef.current.state === "suspended") {
       audioCtxRef.current.resume();
     }
 
-    droneGainRef.current.gain.setTargetAtTime(0.3, audioCtxRef.current.currentTime, 0.1);
-
   }, [isAudioEnabled]);
 
-  // Handle Business Popup Silence (Mesa de Reunião)
+  // Carregar e tocar o arquivo de áudio real
+  useEffect(() => {
+    if (!isAudioEnabled || !audioCtxRef.current || drumBufferRef.current) return;
+    
+    setIsLoadingAudio(true);
+    // Tenta carregar o arquivo real da pasta public
+    fetch('/drum-loop.mp3')
+      .then(res => {
+        if (!res.ok) throw new Error("Arquivo não encontrado.");
+        return res.arrayBuffer();
+      })
+      .then(arrayBuffer => audioCtxRef.current.decodeAudioData(arrayBuffer))
+      .then(decodedBuffer => {
+        drumBufferRef.current = decodedBuffer;
+        setIsLoadingAudio(false);
+        
+        // Inicia o loop de bateria
+        if (drumSourceRef.current) {
+          drumSourceRef.current.stop();
+          drumSourceRef.current.disconnect();
+        }
+        
+        const source = audioCtxRef.current.createBufferSource();
+        source.buffer = decodedBuffer;
+        source.loop = true;
+        source.connect(drumFilterRef.current);
+        source.start(0);
+        drumSourceRef.current = source;
+      })
+      .catch(err => {
+        console.error("Erro ao carregar o loop de bateria (adicione drum-loop.mp3 na pasta public):", err);
+        setIsLoadingAudio(false);
+      });
+  }, [isAudioEnabled]);
+
+  // Controle de volume do loop de bateria (fade out no menu)
+  useEffect(() => {
+    if (!isAudioEnabled || !audioCtxRef.current) return;
+    const ctx = audioCtxRef.current;
+    
+    if (isMenuOpen) {
+      if (drumMasterGainRef.current) {
+         drumMasterGainRef.current.gain.setTargetAtTime(0, ctx.currentTime, 0.5);
+      }
+    } else {
+      if (drumMasterGainRef.current) {
+         drumMasterGainRef.current.gain.setTargetAtTime(0.8, ctx.currentTime, 0.5);
+      }
+    }
+  }, [isAudioEnabled, isMenuOpen]);
+
+  // Handle Business Popup Silence
   useEffect(() => {
     if (!isAudioEnabled || !audioCtxRef.current || !masterGainRef.current) return;
     const time = audioCtxRef.current.currentTime;
     
     if (isBusinessPopupOpen) {
-      // Fade out de meio segundo para não dar estalo
       masterGainRef.current.gain.setTargetAtTime(0, time, 0.2);
     } else {
-      // Fade in restaurando o som
       masterGainRef.current.gain.setTargetAtTime(1, time, 0.2);
     }
   }, [isBusinessPopupOpen, isAudioEnabled]);
 
-  // Handle Menu Open/Close Cathedral Xylophone Loop Logic
+  // Handle Menu Open/Close Cathedral Xylophone
   useEffect(() => {
     if (!isAudioEnabled || !audioCtxRef.current || !xyloInputRef.current) return;
     const time = audioCtxRef.current.currentTime;
     let timeoutId;
 
     if (isMenuOpen) {
-      // 1. O GRAVE ANCORA (Baixo Contínuo sustentando o acorde diminuto)
-      osc1Ref.current.frequency.setTargetAtTime(65.41, time, 1.0); // Força C2
-      osc2Ref.current.frequency.setTargetAtTime(65.41, time, 1.0); // Alinha os dois para focar
-      droneFilterRef.current.frequency.setTargetAtTime(600, time, 1.5);
-      
-      // Desliga a respiração do LFO para o baixo ficar perpétuo e sólido
-      lfoGainRef.current.gain.setTargetAtTime(0, time, 0.5);
-
-      // Liga a Catedral no Gain base médio (ex: 0.5) e ativa o LFO que sobe e desce o volume
       cathedralMasterGainRef.current.gain.setTargetAtTime(0.5, time, 0.1);
-      cathedralLfoGainRef.current.gain.setTargetAtTime(0.4, time, 0.1); // Oscila de 0.1 a 0.9 lentamente
+      cathedralLfoGainRef.current.gain.setTargetAtTime(0.4, time, 0.1); 
       feedbackGainRef.current.gain.setTargetAtTime(0.65, time, 0.1);
 
-      // 2. LOOP INFINITO DO XILOFONE
       const playRandomNote = () => {
-        if (!isMenuOpen || !audioCtxRef.current) return; // Segurança
+        if (!isMenuOpen || !audioCtxRef.current) return;
 
         const now = audioCtxRef.current.currentTime;
-        // Acorde Diminuto 7 (C dim7): C4, Eb4, Gb4, A4
         const freqs = [261.63, 311.13, 369.99, 440.00];
-        
-        // Sorteia uma nota e uma oitava opcional para dar mais brilho
         const baseFreq = freqs[Math.floor(Math.random() * freqs.length)];
-        const freq = Math.random() > 0.5 ? baseFreq : baseFreq * 2; // Pula uma oitava aleatoriamente
+        const freq = Math.random() > 0.5 ? baseFreq : baseFreq * 2; 
         
-        // Cria um oscilador para essa nota específica
         const noteOsc = audioCtxRef.current.createOscillator();
         noteOsc.type = "sine";
         noteOsc.frequency.value = freq;
         
-        // Cria o envelope de Xilofone (Ataque rápido, Decaimento lento)
         const noteGain = audioCtxRef.current.createGain();
         noteGain.gain.setValueAtTime(0, now);
-        noteGain.gain.linearRampToValueAtTime(0.2, now + 0.05); // Volume de entrada reduzido de 0.3 para 0.2
-        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0); // Decay lento
+        noteGain.gain.linearRampToValueAtTime(0.2, now + 0.05); 
+        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0); 
         
-        // Conecta na Catedral (Reverb/Delay network)
         noteOsc.connect(noteGain);
         noteGain.connect(xyloInputRef.current);
         
         noteOsc.start(now);
-        noteOsc.stop(now + 3.5); // Desliga da memória quando o som acaba
+        noteOsc.stop(now + 3.5); 
         
-        // Agenda a próxima batida com tempo aleatório (imprevisível: entre 400ms e 1800ms)
         const nextDelay = 400 + Math.random() * 1400;
         timeoutId = setTimeout(playRandomNote, nextDelay);
       };
 
-      // Começa o loop assim que o menu abre
       playRandomNote();
-
     } else {
-      // MENU FECHOU
-      // Pára o loop recursivo imediatamente
       clearTimeout(timeoutId);
-      
-      // Desliga a Catedral imediatamente (fade out rápido e mata o buffer de eco e LFO)
       cathedralMasterGainRef.current.gain.setTargetAtTime(0, time, 0.1);
       cathedralLfoGainRef.current.gain.setTargetAtTime(0, time, 0.1);
       feedbackGainRef.current.gain.setTargetAtTime(0, time, 0.1);
-      
-      // Volta o grave ao estado caótico (LFO)
-      lfoGainRef.current.gain.setTargetAtTime(3, time, 1); 
     }
 
-    // Cleanup caso o componente desmonte ou isMenuOpen mude
     return () => clearTimeout(timeoutId);
   }, [isMenuOpen, isAudioEnabled]);
 
-  // Handle Global Interactions (Click & Drag)
+  // Handle Global Interactions and Mouse Follower
   useEffect(() => {
-    const handleMouseDown = () => {
-      isDraggingRef.current = true;
-      if (isAudioEnabled && audioCtxRef.current && osc1Ref.current && !isMenuOpen) {
-        const time = audioCtxRef.current.currentTime;
-        glassGainRef.current.gain.setTargetAtTime(0.05, time, 0.1);
+    const handleGlobalClick = (e) => {
+      if (e.target.closest('#audio-toggle-btn')) return;
+      if (!isAudioEnabled && !hasInteracted) {
+        setIsAudioEnabled(true);
+        setHasInteracted(true);
       }
     };
+    
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, [isAudioEnabled, hasInteracted]);
 
-    const handleMouseUp = () => {
-      isDraggingRef.current = false;
-      if (isAudioEnabled && audioCtxRef.current && osc1Ref.current && !isMenuOpen) {
-        const time = audioCtxRef.current.currentTime;
-        glassGainRef.current.gain.setTargetAtTime(0, time, 0.8);
-      }
-    };
-
+  useEffect(() => {
     const handleMouseMove = (e) => {
-      if (isMenuOpen) return; // Menu aberto ignora modulação pelo mouse
+      if (cursorRef.current && !isAudioEnabled && !hasInteracted) {
+        cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+      }
+
+      if (isMenuOpen) return;
 
       const x = e.clientX / window.innerWidth;
       const y = e.clientY / window.innerHeight;
@@ -301,31 +267,24 @@ export default function AudioVisualizer() {
       
       lastMousePosRef.current = { x: e.clientX, y: e.clientY, time: now };
 
-      if (isAudioEnabled && audioCtxRef.current && droneFilterRef.current) {
+      if (isAudioEnabled && audioCtxRef.current && drumFilterRef.current) {
         const time = audioCtxRef.current.currentTime;
-        
-        if (!isDraggingRef.current) {
-          const idleFreq = 40 + x * 50;
-          osc1Ref.current.frequency.setTargetAtTime(idleFreq, time, 0.1);
-          osc2Ref.current.frequency.setTargetAtTime(idleFreq + 0.5, time, 0.1);
-        } else {
-          const tensionFreq = 100 + x * 80 + velocity * 10;
-          osc1Ref.current.frequency.setTargetAtTime(tensionFreq, time, 0.1);
-          osc2Ref.current.frequency.setTargetAtTime(tensionFreq + 1, time, 0.1);
-        }
+        const targetFreq = 500 + x * 5000 + velocity * 1000;
+        drumFilterRef.current.frequency.setTargetAtTime(targetFreq, time, 0.1);
+      }
+    };
 
-        const droneTargetFreq = 200 + x * 1800;
-        droneFilterRef.current.frequency.setTargetAtTime(droneTargetFreq, time, 0.1);
-        
-        const droneTargetGain = 0.05 + y * 0.35;
-        droneGainRef.current.gain.setTargetAtTime(droneTargetGain, time, 0.1);
+    const handleMouseDown = () => {
+      isDraggingRef.current = true;
+      if (isAudioEnabled && audioCtxRef.current && drumFilterRef.current && !isMenuOpen) {
+         drumFilterRef.current.Q.setTargetAtTime(5, audioCtxRef.current.currentTime, 0.1);
+      }
+    };
 
-        if (isDraggingRef.current && glassOscRef.current) {
-          const glassPitch = 1000 + (velocity * 800) + (x * 1500); 
-          glassOscRef.current.frequency.setTargetAtTime(glassPitch, time, 0.05);
-          const glassVolume = Math.min(0.05 + velocity * 0.15, 0.25);
-          glassGainRef.current.gain.setTargetAtTime(glassVolume, time, 0.05);
-        }
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+      if (isAudioEnabled && audioCtxRef.current && drumFilterRef.current && !isMenuOpen) {
+         drumFilterRef.current.Q.setTargetAtTime(1, audioCtxRef.current.currentTime, 0.1);
       }
     };
 
@@ -338,30 +297,54 @@ export default function AudioVisualizer() {
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [isAudioEnabled, isMenuOpen]);
+  }, [isAudioEnabled, isMenuOpen, hasInteracted]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-[70]">
-      <button
-        onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full border backdrop-blur-md transition-all duration-300 ${
-          isAudioEnabled 
-            ? "border-pink-500/50 bg-pink-500/20 text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.3)]" 
-            : "border-white/10 bg-black/50 text-gray-400 hover:bg-white/10"
-        }`}
-      >
-        {isAudioEnabled ? (
-          <>
-            <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></div>
-            Som Ativo
-          </>
-        ) : (
-          <>
-            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-            Som Mutado
-          </>
-        )}
-      </button>
-    </div>
+    <>
+      {!isAudioEnabled && !hasInteracted && (
+        <div 
+          ref={cursorRef}
+          className="fixed top-0 left-0 pointer-events-none z-[100] flex items-center justify-center -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300"
+          style={{ willChange: 'transform' }}
+        >
+          <div className="bg-black/60 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full text-sm font-light tracking-wide shadow-2xl flex items-center gap-2">
+             <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></div>
+             Click to enable sound
+          </div>
+        </div>
+      )}
+
+      <div className="fixed bottom-6 right-6 z-[70]">
+        <button
+          id="audio-toggle-btn"
+          onClick={() => {
+            setIsAudioEnabled(!isAudioEnabled);
+            setHasInteracted(true);
+          }}
+          className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full border backdrop-blur-md transition-all duration-300 ${
+            isAudioEnabled 
+              ? "border-pink-500/50 bg-pink-500/20 text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.3)]" 
+              : "border-white/10 bg-black/50 text-gray-400 hover:bg-white/10"
+          }`}
+        >
+          {isLoadingAudio ? (
+            <>
+              <div className="w-4 h-4 rounded-full border-2 border-pink-400 border-t-transparent animate-spin"></div>
+              Carregando...
+            </>
+          ) : isAudioEnabled ? (
+            <>
+              <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></div>
+              Som Ativo
+            </>
+          ) : (
+            <>
+              <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+              Som Mutado
+            </>
+          )}
+        </button>
+      </div>
+    </>
   );
 }
