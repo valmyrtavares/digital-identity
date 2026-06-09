@@ -6,14 +6,14 @@ import { useMenu } from "@/context/MenuContext";
 
 // Textos em duas linhas (Abstrato) e Texto Business (Real)
 const PROJECTS = [
-  { line1: "I. Genesis", line2: "Quântico", business: "Websites", top: "15%", left: "10%", size: "text-2xl md:text-3xl", depth: 0.8 },
-  { line1: "II. Ressonância", line2: "do Vazio", business: "Landing Pages", top: "35%", right: "15%", size: "text-3xl md:text-4xl", depth: 1.2 },
-  { line1: "III. Horizontes", line2: "de Neon", business: "Soluções Customizadas", top: "55%", left: "20%", size: "text-4xl md:text-5xl", depth: 1.5 },
-  { line1: "IV. Ecos", line2: "do Silêncio", business: "Edição de Vídeo", top: "10%", right: "25%", size: "text-xl md:text-2xl", depth: 0.5 },
-  { line1: "V. Ondas", line2: "Cromáticas", business: "Meus Produtos", top: "70%", right: "30%", size: "text-2xl md:text-4xl", depth: 1.1 },
-  { line1: "VI. Desvio", line2: "Temporal", business: "ERP Gastronômico", top: "25%", left: "35%", size: "text-4xl md:text-6xl", depth: 2.0 },
-  { line1: "VII. Matéria", line2: "Escura", business: "Desenvolvedor Full Stack", top: "80%", left: "15%", size: "text-xl md:text-3xl", depth: 0.6 },
-  { line1: "VIII. Fluxo", line2: "de Pragma", business: "Consultoria Tech", top: "85%", right: "15%", size: "text-2xl md:text-3xl", depth: 0.9 },
+  { line1: "I. Genesis", line2: "Quântico", business: "Websites", top: "15%", left: "10%", size: "text-2xl md:text-3xl", depth: 0.8, slug: "genesis" },
+  { line1: "II. Ressonância", line2: "do Vazio", business: "Landing Pages", top: "35%", right: "15%", size: "text-3xl md:text-4xl", depth: 1.2, slug: "ressonancia" },
+  { line1: "III. Horizontes", line2: "de Neon", business: "Soluções Customizadas", top: "55%", left: "20%", size: "text-4xl md:text-5xl", depth: 1.5, slug: "horizontes" },
+  { line1: "IV. Ecos", line2: "do Silêncio", business: "Edição de Vídeo", top: "10%", right: "25%", size: "text-xl md:text-2xl", depth: 0.5, slug: "ecos" },
+  { line1: "V. Ondas", line2: "Cromáticas", business: "Meus Produtos", top: "70%", right: "30%", size: "text-2xl md:text-4xl", depth: 1.1, slug: "ondas" },
+  { line1: "VI. Desvio", line2: "Temporal", business: "ERP Gastronômico", top: "25%", left: "35%", size: "text-4xl md:text-6xl", depth: 2.0, slug: "desvio" },
+  { line1: "VII. Matéria", line2: "Escura", business: "Desenvolvedor Full Stack", top: "80%", left: "15%", size: "text-xl md:text-3xl", depth: 0.6, slug: "materia" },
+  { line1: "VIII. Fluxo", line2: "de Pragma", business: "Consultoria Tech", top: "85%", right: "15%", size: "text-2xl md:text-3xl", depth: 0.9, slug: "fluxo" },
 ];
 
 const GLITCH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;':,./<>?";
@@ -22,7 +22,7 @@ const GlitchItem = ({ project, index, addToRefs }) => {
   const [displayText, setDisplayText] = useState(`${project.line1} ${project.line2}`);
   const [isHovered, setIsHovered] = useState(false);
   const intervalRef = useRef(null);
-  const { openBusinessPopup } = useMenu();
+  const { openBusinessPopup, toggleMenu } = useMenu();
 
   const doGlitch = (targetText) => {
     let iteration = 0;
@@ -59,7 +59,8 @@ const GlitchItem = ({ project, index, addToRefs }) => {
   };
 
   const handleClick = () => {
-    openBusinessPopup(project);
+    toggleMenu();
+    window.location.href = `/produtos/${project.slug}`;
   };
 
   return (
