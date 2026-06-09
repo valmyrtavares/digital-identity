@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useMenu } from "@/context/MenuContext";
+import { useRouter } from "next/navigation";
 
 // Textos em duas linhas (Abstrato) e Texto Business (Real)
 const PROJECTS = [
@@ -25,6 +26,7 @@ const GlitchItem = ({ project, index, addToRefs, isMenuOpen }) => {
   const intervalRef = useRef(null);
   const hoverStateRef = useRef(false);
   const { openBusinessPopup, toggleMenu } = useMenu();
+  const router = useRouter();
 
   // Mobile detection
   useEffect(() => {
@@ -122,8 +124,8 @@ const GlitchItem = ({ project, index, addToRefs, isMenuOpen }) => {
   };
 
   const handleClick = () => {
-    toggleMenu();
-    window.location.href = `/produtos/${project.slug}`;
+    // Não fechamos o menu aqui para não mostrar a home enquanto a rota carrega
+    router.push(`/produtos/${project.slug}`);
   };
 
   return (
@@ -274,7 +276,7 @@ export default function OverlayMenu() {
 
       <div
         ref={overlayRef}
-        className="fixed inset-0 z-50 bg-transparent pointer-events-auto perspective-1000 overflow-y-auto md:overflow-hidden"
+        className="fixed inset-0 z-50 bg-transparent pointer-events-auto perspective-1000 overflow-y-auto md:overflow-hidden opacity-0 invisible"
         style={{ perspective: "1200px" }}
       >
         <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">

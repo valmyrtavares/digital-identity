@@ -5,7 +5,6 @@ import Scene from '@/components/Scene';
 import AnimatedText from '@/components/AnimatedText';
 import AudioVisualizer from '@/components/AudioVisualizer';
 import OverlayMenu from '@/components/OverlayMenu';
-import BusinessPopup from '@/components/BusinessPopup';
 import { useMenu } from '@/context/MenuContext';
 
 export default function Home() {
@@ -64,9 +63,6 @@ export default function Home() {
 
       {/* Menu Hamburger e Overlay */}
       <OverlayMenu />
-
-      {/* Popup de Business (Mesa de Reunião) */}
-      <BusinessPopup />
 
       {/* Conteúdo rolável por cima da cena (oculto quando o menu abre) */}
       <div className={`relative z-10 w-full pointer-events-none transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 hidden' : 'opacity-100'}`}>

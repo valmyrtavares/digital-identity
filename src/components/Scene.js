@@ -2,9 +2,68 @@
 
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, MeshDistortMaterial, Environment, Sparkles, Text, Html, Ring, Plane } from '@react-three/drei';
+import { Float, MeshDistortMaterial, Environment, Sparkles, Text, Html, Ring, Plane, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMenu } from "@/context/MenuContext";
+
+function CustomLoader() {
+  const { active, progress } = useProgress();
+  const [visible, setVisible] = useState(true);
+  const [displayProgress, setDisplayProgress] = useState(0);
+  const progressRef = useRef(0);
+
+  useEffect(() => {
+    let animationFrameId;
+
+    const animate = () => {
+      // O objetivo real. Se os assets já carregaram, o alvo é 100.
+      const target = (!active || progress === 100) ? 100 : progress;
+
+      if (progressRef.current < target) {
+        // Incrementa aos poucos (demora cerca de 1.5s para ir de 0 a 100)
+        progressRef.current += 1.2;
+        if (progressRef.current > target) {
+          progressRef.current = target;
+        }
+        setDisplayProgress(progressRef.current);
+      }
+
+      if (progressRef.current < 100) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        // Quando atingir 100%, aguarda 0.8s e esconde a tela
+        setTimeout(() => setVisible(false), 800);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [progress, active]);
+
+  if (!visible) return null;
+
+  const isFadingOut = displayProgress >= 100;
+
+  return (
+    <div 
+      className={`fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center transition-opacity duration-1000 pointer-events-auto ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+    >
+      <div className="text-6xl md:text-8xl font-mono font-extralight tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 animate-pulse">
+        {Math.floor(displayProgress)}%
+      </div>
+      <div className="mt-6 text-xs md:text-sm uppercase tracking-[0.5em] text-gray-500">
+        Iniciando Experiência
+      </div>
+      <div className="w-48 md:w-64 h-1 bg-white/10 mt-8 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-gradient-to-r from-pink-500 to-indigo-500 transition-all duration-75"
+          style={{ width: `${displayProgress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 // Componente do Objeto 3D interativo
 function InteractiveShape() {
@@ -343,18 +402,21 @@ export default function Scene() {
   const { isMenuOpen, toggleMenu } = useMenu();
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full z-[-1] bg-[#050505]">
-      <Canvas camera={{ position: [0, 0, 5], fov: 45 }} dpr={[1, 2]}>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        
-        <Stardust />
-        <ZodiacRing toggleMenu={toggleMenu} />
-        {!isMenuOpen && <InteractiveShape />}
-        
-        {/* Adiciona reflexos e iluminação de ambiente premium */}
-        <Environment preset="city" />
-      </Canvas>
-    </div>
+    <>
+      <CustomLoader />
+      <div className="fixed top-0 left-0 w-full h-full z-[-1] bg-[#050505]">
+        <Canvas camera={{ position: [0, 0, 5], fov: 45 }} dpr={[1, 2]}>
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
+          
+          <Stardust />
+          <ZodiacRing toggleMenu={toggleMenu} />
+          {!isMenuOpen && <InteractiveShape />}
+          
+          {/* Adiciona reflexos e iluminação de ambiente premium */}
+          <Environment preset="city" />
+        </Canvas>
+      </div>
+    </>
   );
 }
