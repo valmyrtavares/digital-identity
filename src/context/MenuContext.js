@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 const MenuContext = createContext();
 
@@ -8,6 +9,14 @@ export function MenuProvider({ children }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isBusinessPopupOpen, setIsBusinessPopupOpen] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname === '/') {
+      setIsMenuOpen(false);
+      setIsBusinessPopupOpen(false);
+    }
+  }, [pathname]);
 
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);

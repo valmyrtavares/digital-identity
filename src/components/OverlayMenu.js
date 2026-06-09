@@ -123,8 +123,9 @@ const GlitchItem = ({ project, index, addToRefs, isMenuOpen }) => {
     doGlitch(`${project.line1} ${project.line2}`);
   };
 
-  const handleClick = () => {
+  const handleClick = (e) => {
     // Não fechamos o menu aqui para não mostrar a home enquanto a rota carrega
+    e.currentTarget.innerHTML = "<span class='text-white font-mono text-2xl tracking-widest bg-black/50 px-4 py-2 rounded-full border border-white/20'>CARREGANDO...</span>";
     router.push(`/produtos/${project.slug}`);
   };
 
@@ -267,11 +268,11 @@ export default function OverlayMenu() {
       {/* Hide hamburger if business popup is open (cleaner UI) */}
       <button
         onClick={toggleMenu}
-        className={`fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/5 bg-white/5 backdrop-blur-md flex flex-col items-center justify-center gap-1.5 transition-all duration-500 hover:bg-white/10 hover:border-white/20 group mix-blend-difference ${isBusinessPopupOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/20 bg-black/40 backdrop-blur-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500 hover:bg-white/20 hover:scale-110 active:scale-95 group shadow-xl ${isBusinessPopupOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
-        <span className={`w-6 h-[1px] bg-white transition-all duration-300 ${isMenuOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
-        <span className={`w-6 h-[1px] bg-white transition-all duration-300 ${isMenuOpen ? "opacity-0" : "opacity-100"}`} />
-        <span className={`w-6 h-[1px] bg-white transition-all duration-300 ${isMenuOpen ? "-rotate-45 -translate-y-[7px]" : ""}`} />
+        <span className={`w-6 h-[2px] bg-white transition-all duration-300 ${isMenuOpen ? "rotate-45 translate-y-[8px]" : ""}`} />
+        <span className={`w-6 h-[2px] bg-white transition-all duration-300 ${isMenuOpen ? "opacity-0" : "opacity-100"}`} />
+        <span className={`w-6 h-[2px] bg-white transition-all duration-300 ${isMenuOpen ? "-rotate-45 -translate-y-[8px]" : ""}`} />
       </button>
 
       <div

@@ -136,16 +136,12 @@ export default function ProdutoDetalhe({ params }) {
         <div className="mb-16 flex items-center justify-between">
           <Link 
             href="/" 
+            onClick={(e) => { e.currentTarget.innerHTML = "<span class='text-gray-400'>AGUARDE...</span>"; }}
             className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group uppercase tracking-widest"
           >
             <span className="group-hover:-translate-x-1 transition-transform">←</span> Início
           </Link>
-          <Link 
-            href="/produtos" 
-            className="px-6 py-2 border border-white/10 rounded-full hover:bg-white/10 hover:border-white/20 transition-colors text-xs uppercase tracking-wider"
-          >
-            Oráculo Sonoro
-          </Link>
+          {/* Botão Oráculo Sonoro Removido a pedido */}
         </div>
 
         {/* Card do Produto */}

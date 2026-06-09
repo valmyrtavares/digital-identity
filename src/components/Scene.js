@@ -10,28 +10,24 @@ function CustomLoader() {
   const { active, progress } = useProgress();
   const [visible, setVisible] = useState(true);
   const [displayProgress, setDisplayProgress] = useState(0);
-  const progressRef = useRef(0);
+  const startTimeRef = useRef(null);
 
   useEffect(() => {
     let animationFrameId;
 
-    const animate = () => {
-      // O objetivo real. Se os assets já carregaram, o alvo é 100.
+    const animate = (timestamp) => {
+      if (!startTimeRef.current) startTimeRef.current = timestamp;
+      const elapsed = timestamp - startTimeRef.current;
+      
+      const timeBasedProgress = Math.min((elapsed / 1500) * 100, 100);
       const target = (!active || progress === 100) ? 100 : progress;
+      const nextProgress = Math.min(timeBasedProgress, target);
 
-      if (progressRef.current < target) {
-        // Incrementa aos poucos (demora cerca de 1.5s para ir de 0 a 100)
-        progressRef.current += 1.2;
-        if (progressRef.current > target) {
-          progressRef.current = target;
-        }
-        setDisplayProgress(progressRef.current);
-      }
+      setDisplayProgress(nextProgress);
 
-      if (progressRef.current < 100) {
+      if (nextProgress < 100) {
         animationFrameId = requestAnimationFrame(animate);
       } else {
-        // Quando atingir 100%, aguarda 0.8s e esconde a tela
         setTimeout(() => setVisible(false), 800);
       }
     };
