@@ -18,11 +18,55 @@ const PROJECTS = [
 
 const GLITCH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;':,./<>?";
 
-const GlitchItem = ({ project, index, addToRefs }) => {
+const GlitchItem = ({ project, index, addToRefs, isMenuOpen }) => {
   const [displayText, setDisplayText] = useState(`${project.line1} ${project.line2}`);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const intervalRef = useRef(null);
+  const hoverStateRef = useRef(false);
   const { openBusinessPopup, toggleMenu } = useMenu();
+
+  // Mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsHovered(true);
+        setDisplayText(project.business.toUpperCase());
+      } else if (!isHovered && !hoverStateRef.current) {
+        setIsHovered(false);
+        setDisplayText(`${project.line1} ${project.line2}`);
+      }
+    };
+    
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [project]);
+
+  // Animation on menu open (for desktop)
+  useEffect(() => {
+    if (!isMenuOpen || isMobile) return;
+    
+    // Desktop hint animation: show real name temporarily when menu opens
+    const delay = 800 + index * 300;
+    const hintTimeout = setTimeout(() => {
+      if (!hoverStateRef.current) {
+        setIsHovered(true);
+        doGlitch(project.business.toUpperCase());
+        
+        setTimeout(() => {
+          if (!hoverStateRef.current) {
+            setIsHovered(false);
+            doGlitch(`${project.line1} ${project.line2}`);
+          }
+        }, 2500);
+      }
+    }, delay);
+
+    return () => clearTimeout(hintTimeout);
+  }, [isMenuOpen, isMobile, project, index]);
 
   const doGlitch = (targetText) => {
     let iteration = 0;
@@ -49,11 +93,15 @@ const GlitchItem = ({ project, index, addToRefs }) => {
   };
 
   const handleMouseEnter = () => {
+    if (isMobile) return;
+    hoverStateRef.current = true;
     setIsHovered(true);
     doGlitch(project.business.toUpperCase());
   };
 
   const handleMouseLeave = () => {
+    if (isMobile) return;
+    hoverStateRef.current = false;
     setIsHovered(false);
     doGlitch(`${project.line1} ${project.line2}`);
   };
@@ -235,7 +283,7 @@ export default function OverlayMenu() {
 
         <div className="relative w-full min-h-full flex flex-col items-start justify-center md:block px-8 py-24 md:p-0">
           {PROJECTS.map((project, index) => (
-            <GlitchItem key={index} project={project} index={index} addToRefs={addToRefs} />
+            <GlitchItem key={index} project={project} index={index} addToRefs={addToRefs} isMenuOpen={isMenuOpen} />
           ))}
         </div>
       </div>

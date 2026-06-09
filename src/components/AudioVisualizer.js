@@ -241,6 +241,23 @@ export default function AudioVisualizer() {
       if (!isAudioEnabled && !hasInteracted) {
         setIsAudioEnabled(true);
         setHasInteracted(true);
+      } else if (isAudioEnabled && drumBufferRef.current && audioCtxRef.current) {
+        // Reinicia o áudio ao clicar novamente na tela
+        if (drumSourceRef.current) {
+          try {
+            drumSourceRef.current.stop();
+          } catch (e) {
+            // Ignora erro se já estiver parado
+          }
+          drumSourceRef.current.disconnect();
+        }
+        
+        const source = audioCtxRef.current.createBufferSource();
+        source.buffer = drumBufferRef.current;
+        source.loop = true;
+        source.connect(drumFilterRef.current);
+        source.start(0);
+        drumSourceRef.current = source;
       }
     };
     
