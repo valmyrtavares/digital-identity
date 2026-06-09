@@ -49,23 +49,38 @@ const GlitchItem = ({ project, index, addToRefs, isMenuOpen }) => {
   useEffect(() => {
     if (!isMenuOpen || isMobile) return;
     
-    // Desktop hint animation: show real name temporarily when menu opens
-    const delay = 800 + index * 300;
-    const hintTimeout = setTimeout(() => {
+    let isCancelled = false;
+    let cycleTimeout;
+    let revertTimeout;
+    
+    const runCycle = () => {
+      if (isCancelled) return;
+      
       if (!hoverStateRef.current) {
         setIsHovered(true);
         doGlitch(project.business.toUpperCase());
-        
-        setTimeout(() => {
-          if (!hoverStateRef.current) {
-            setIsHovered(false);
-            doGlitch(`${project.line1} ${project.line2}`);
-          }
-        }, 2500);
       }
-    }, delay);
+      
+      revertTimeout = setTimeout(() => {
+        if (isCancelled) return;
+        if (!hoverStateRef.current) {
+          setIsHovered(false);
+          doGlitch(`${project.line1} ${project.line2}`);
+        }
+      }, 2500); // Fica 2.5s como real
+      
+      cycleTimeout = setTimeout(runCycle, 6000); // Reinicia o ciclo a cada 6 segundos
+    };
 
-    return () => clearTimeout(hintTimeout);
+    // Initial staggered delay
+    const initialDelay = 800 + index * 300;
+    cycleTimeout = setTimeout(runCycle, initialDelay);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(cycleTimeout);
+      clearTimeout(revertTimeout);
+    };
   }, [isMenuOpen, isMobile, project, index]);
 
   const doGlitch = (targetText) => {
