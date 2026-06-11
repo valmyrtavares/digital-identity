@@ -5,6 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, MeshDistortMaterial, Environment, Sparkles, Text, Html, Ring, Plane, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMenu } from "@/context/MenuContext";
+import { usePathname } from "next/navigation";
 
 function CustomLoader() {
   const { active, progress } = useProgress();
@@ -395,7 +396,9 @@ function ZodiacRing({ toggleMenu }) {
 
 // O Canvas principal que fica fixo no fundo
 export default function Scene() {
-  const { isMenuOpen, toggleMenu } = useMenu();
+  const { toggleMenu } = useMenu();
+  const pathname = usePathname();
+  const isProdutosPage = pathname === '/produtos';
 
   return (
     <>
@@ -407,7 +410,7 @@ export default function Scene() {
           
           <Stardust />
           <ZodiacRing toggleMenu={toggleMenu} />
-          {!isMenuOpen && <InteractiveShape />}
+          {!isProdutosPage && <InteractiveShape />}
           
           {/* Adiciona reflexos e iluminação de ambiente premium */}
           <Environment preset="city" />

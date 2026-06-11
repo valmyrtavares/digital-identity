@@ -18,6 +18,8 @@ export const metadata = {
 
 import SmoothScroll from "@/components/SmoothScroll";
 import { MenuProvider } from "@/context/MenuContext";
+import Scene from "@/components/Scene";
+import AudioVisualizer from "@/components/AudioVisualizer";
 
 export default function RootLayout({ children }) {
   return (
@@ -28,6 +30,8 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col bg-[#050505] text-white" suppressHydrationWarning>
         <MenuProvider>
+          <Scene />
+          <AudioVisualizer />
           <SmoothScroll>{children}</SmoothScroll>
         </MenuProvider>
       </body>

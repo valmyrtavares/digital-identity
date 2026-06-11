@@ -149,7 +149,6 @@ export default function ProdutoDetalhe({ params }) {
         <div className="mb-16 flex items-center justify-between">
           <Link 
             href="/" 
-            onClick={(e) => { e.currentTarget.innerHTML = "<span class='text-gray-400'>AGUARDE...</span>"; }}
             className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group uppercase tracking-widest"
           >
             <span className="group-hover:-translate-x-1 transition-transform">←</span> Início
@@ -283,12 +282,14 @@ export default function ProdutoDetalhe({ params }) {
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="w-full py-4 rounded-xl font-semibold tracking-wider text-black bg-white hover:bg-gray-200 transition-all duration-300 active:scale-95 shadow-lg cursor-pointer text-center"
-                  >
-                    Enviar Proposta por WhatsApp
-                  </button>
+                  <div className="flex justify-start">
+                    <button
+                      type="submit"
+                      className="px-8 py-3 rounded-xl font-semibold tracking-wider text-black bg-white hover:bg-gray-200 transition-all duration-300 active:scale-95 shadow-lg cursor-pointer text-center text-sm"
+                    >
+                      Enviar
+                    </button>
+                  </div>
                 </form>
 
                 {/* Alternativa do WhatsApp Direto */}

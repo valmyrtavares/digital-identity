@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Scene from '@/components/Scene';
+import { useRouter } from 'next/navigation';
 import AnimatedText from '@/components/AnimatedText';
-import AudioVisualizer from '@/components/AudioVisualizer';
-import OverlayMenu from '@/components/OverlayMenu';
 import { useMenu } from '@/context/MenuContext';
 
 export default function Home() {
-  const { isMenuOpen, toggleMenu } = useMenu();
+  const { isBusinessPopupOpen } = useMenu();
   const [isOracleVisible, setIsOracleVisible] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,8 +30,6 @@ export default function Home() {
 
   return (
     <main className="relative w-full min-h-screen text-white font-sans overflow-hidden">
-      {/* O Canvas 3D fica fixo no fundo */}
-      <Scene />
 
       {/* Botão Consulte O Oráculo Fixo no Centro (aparece no final) */}
       <div 
@@ -46,7 +43,7 @@ export default function Home() {
           className="flex flex-col items-center justify-center text-center cursor-pointer rounded-full w-[180px] h-[180px] hover:scale-110 active:scale-95 transition-all duration-500 ease-out pointer-events-auto"
           onClick={(e) => {
             e.preventDefault();
-            toggleMenu();
+            router.push('/produtos');
           }}
         >
           <a 
@@ -58,14 +55,20 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Controle de Áudio Generativo */}
-      <AudioVisualizer />
 
-      {/* Menu Hamburger e Overlay */}
-      <OverlayMenu />
 
-      {/* Conteúdo rolável por cima da cena (oculto quando o menu abre) */}
-      <div className={`relative z-10 w-full pointer-events-none transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 hidden' : 'opacity-100'}`}>
+      {/* Menu Hamburger para navegar para a página de produtos */}
+      <button
+        onClick={() => router.push('/produtos')}
+        className={`fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/20 bg-black/40 backdrop-blur-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500 hover:bg-white/20 hover:scale-110 active:scale-95 group shadow-xl ${isBusinessPopupOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+      >
+        <span className="w-6 h-[2px] bg-white transition-all duration-300" />
+        <span className="w-6 h-[2px] bg-white transition-all duration-300" />
+        <span className="w-6 h-[2px] bg-white transition-all duration-300" />
+      </button>
+
+      {/* Conteúdo rolável por cima da cena */}
+      <div className="relative z-10 w-full pointer-events-none transition-opacity duration-500 opacity-100">
 
         {/* Seção 1 - Hero */}
         <section className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
@@ -144,7 +147,7 @@ export default function Home() {
 
         {/* Seção 4 - Zodíaco e Oráculo (Espaço extra para scroll) */}
         <section className="min-h-[500vh] relative z-10 pointer-events-auto">
-          {/* O conteúdo visual 3D e o texto estão no componente Scene */}
+          {/* O conteúdo visual 3D e o texto estão renderizados no layout */}
         </section>
 
         {/* Footer */}
