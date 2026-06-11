@@ -6,7 +6,7 @@ import AnimatedText from '@/components/AnimatedText';
 import { useMenu } from '@/context/MenuContext';
 
 export default function Home() {
-  const { isBusinessPopupOpen } = useMenu();
+  const { toggleMenu } = useMenu();
   const [isOracleVisible, setIsOracleVisible] = useState(false);
   const router = useRouter();
 
@@ -60,7 +60,7 @@ export default function Home() {
       {/* Menu Hamburger para navegar para a página de produtos */}
       <button
         onClick={() => router.push('/produtos')}
-        className={`fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/20 bg-black/40 backdrop-blur-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500 hover:bg-white/20 hover:scale-110 active:scale-95 group shadow-xl ${isBusinessPopupOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className="fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/20 bg-black/40 backdrop-blur-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500 hover:bg-white/20 hover:scale-110 active:scale-95 group shadow-xl cursor-pointer"
       >
         <span className="w-6 h-[2px] bg-white transition-all duration-300" />
         <span className="w-6 h-[2px] bg-white transition-all duration-300" />
@@ -68,7 +68,9 @@ export default function Home() {
       </button>
 
       {/* Conteúdo rolável por cima da cena */}
-      <div className="relative z-10 w-full pointer-events-none transition-opacity duration-500 opacity-100">
+      <div className="relative z-10 w-full transition-opacity duration-500 opacity-100 pointer-events-none">
+        {/* We keep pointer-events-none for the content container so Scene is clickable, but children must have pointer-events-auto if needed */}
+        <div className="pointer-events-auto">
 
         {/* Seção 1 - Hero */}
         <section className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
@@ -151,11 +153,12 @@ export default function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="py-12 text-center bg-black">
+        <footer className="py-12 text-center bg-black pointer-events-auto">
           <p className="text-gray-600 font-light text-sm">
             © {new Date().getFullYear()} Digital Identity. Ponta pé inicial criado por Antigravity.
           </p>
         </footer>
+        </div>
       </div>
     </main>
   );

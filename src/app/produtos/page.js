@@ -237,7 +237,7 @@ export default function ProdutosPage() {
       {/* Botão Fechar (X) para voltar à Home */}
       <button
         onClick={() => router.push('/')}
-        className="fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/20 bg-black/40 backdrop-blur-xl flex items-center justify-center transition-all duration-500 hover:bg-white/20 hover:scale-110 active:scale-95 group shadow-xl"
+        className="fixed top-8 right-8 z-[60] w-14 h-14 rounded-full border border-white/20 bg-black/40 backdrop-blur-xl flex items-center justify-center transition-all duration-500 hover:bg-white/20 hover:scale-110 active:scale-95 group shadow-xl cursor-pointer"
       >
         <span className="absolute w-6 h-[2px] bg-white rotate-45 transition-transform group-hover:rotate-90" />
         <span className="absolute w-6 h-[2px] bg-white -rotate-45 transition-transform group-hover:-rotate-90" />

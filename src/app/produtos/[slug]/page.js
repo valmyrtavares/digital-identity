@@ -159,11 +159,14 @@ export default function ProdutoDetalhe({ params }) {
         {/* Card do Produto */}
         <div className={`bg-white/[0.02] backdrop-blur-xl rounded-[40px] border border-white/5 p-8 md:p-16 shadow-[0_30px_100px_rgba(0,0,0,0.8)] ${product.shadow} transition-all duration-700`}>
           
-          {/* Header */}
           <div className="mb-8">
-            <span className={`inline-block px-4 py-1.5 text-xs uppercase tracking-widest rounded-full bg-gradient-to-r ${product.color} text-black font-semibold mb-4`}>
+            <Link 
+              href="/produtos"
+              className={`inline-block px-4 py-1.5 text-xs uppercase tracking-widest rounded-full bg-gradient-to-r ${product.color} text-black font-semibold mb-4 hover:scale-105 hover:opacity-90 active:scale-95 transition-all duration-300 cursor-pointer`}
+              title="Voltar para Produtos"
+            >
               {product.title}
-            </span>
+            </Link>
             <h1 className="text-3xl md:text-5xl font-extralight tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 leading-tight">
               {product.subtitle}
             </h1>
