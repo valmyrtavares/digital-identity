@@ -130,11 +130,19 @@ export default function ProdutoDetalhe({ params }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const message = `Olá! Gostaria de falar sobre o meu projeto:
+    let message = '';
+    
+    if (slug === 'horizontes') {
+      message = `Olá! Gostaria de falar sobre o meu projeto de software:
+- Descrição: ${description}`;
+    } else {
+      message = `Olá! Gostaria de falar sobre o meu projeto:
 - Título do site: ${siteTitle}
 - Segmento: ${segment}
 - Referências: ${referenceSites.join(', ')}
 - Descrição: ${description}`;
+    }
+    
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/5511970741310?text=${encodedMessage}`, '_blank');
   };
@@ -178,19 +186,21 @@ export default function ProdutoDetalhe({ params }) {
           </p>
 
           {/* Badges de Tecnologias */}
-          <div className="mb-12">
-            <h3 className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-4">Tecnologias Envolvidas</h3>
-            <div className="flex flex-wrap gap-2">
-              {product.tech.map((t, idx) => (
-                <span 
-                  key={idx} 
-                  className="px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.01] text-sm text-gray-300 font-light"
-                >
-                  {t}
-                </span>
-              ))}
+          {slug !== 'horizontes' && (
+            <div className="mb-12">
+              <h3 className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-4">Tecnologias Envolvidas</h3>
+              <div className="flex flex-wrap gap-2">
+                {product.tech.map((t, idx) => (
+                  <span 
+                    key={idx} 
+                    className="px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.01] text-sm text-gray-300 font-light"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Botão Vamos conversar e Formulário */}
           <div className="mt-8 border-t border-white/5 pt-8">
@@ -215,70 +225,76 @@ export default function ProdutoDetalhe({ params }) {
                 </div>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Título do site</label>
-                    <input
-                      type="text"
-                      value={siteTitle}
-                      onChange={(e) => setSiteTitle(e.target.value)}
-                      placeholder="Ex: Meu E-commerce Premium"
-                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Segmento de atuação</label>
-                    <input
-                      type="text"
-                      value={segment}
-                      onChange={(e) => setSegment(e.target.value)}
-                      placeholder="Ex: Tecnologia, Moda, Alimentação..."
-                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Alguns sites de referência</label>
-                    <input
-                      type="text"
-                      value={referenceInput}
-                      onChange={(e) => setReferenceInput(e.target.value)}
-                      onPaste={handlePaste}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Cole o link"
-                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
-                    />
-                    
-                    {/* Lista de links colados */}
-                    {referenceSites.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {referenceSites.map((site, index) => (
-                          <div 
-                            key={index}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300"
-                          >
-                            <span className="truncate max-w-[200px] font-mono">{site}</span>
-                            <button
-                              type="button"
-                              onClick={() => setReferenceSites(prev => prev.filter((_, i) => i !== index))}
-                              className="text-gray-400 hover:text-white font-bold cursor-pointer"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
+                  {slug !== 'horizontes' && (
+                    <>
+                      <div>
+                        <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Título do site</label>
+                        <input
+                          type="text"
+                          value={siteTitle}
+                          onChange={(e) => setSiteTitle(e.target.value)}
+                          placeholder="Ex: Meu E-commerce Premium"
+                          className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
+                          required={slug !== 'horizontes'}
+                        />
                       </div>
-                    )}
-                  </div>
+
+                      <div>
+                        <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Segmento de atuação</label>
+                        <input
+                          type="text"
+                          value={segment}
+                          onChange={(e) => setSegment(e.target.value)}
+                          placeholder="Ex: Tecnologia, Moda, Alimentação..."
+                          className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
+                          required={slug !== 'horizontes'}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Alguns sites de referência</label>
+                        <input
+                          type="text"
+                          value={referenceInput}
+                          onChange={(e) => setReferenceInput(e.target.value)}
+                          onPaste={handlePaste}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Cole o link"
+                          className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
+                        />
+                        
+                        {/* Lista de links colados */}
+                        {referenceSites.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {referenceSites.map((site, index) => (
+                              <div 
+                                key={index}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300"
+                              >
+                                <span className="truncate max-w-[200px] font-mono">{site}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setReferenceSites(prev => prev.filter((_, i) => i !== index))}
+                                  className="text-gray-400 hover:text-white font-bold cursor-pointer"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                   <div>
-                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Pequena descrição do site</label>
+                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">
+                      {slug === 'horizontes' ? 'Pequena descrição do projeto' : 'Pequena descrição do site'}
+                    </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Compartilhe as informações que achar que são relevantes sobre sua casa digital (site)"
+                      placeholder={slug === 'horizontes' ? "Descreva o que o sistema precisará fazer." : "Compartilhe as informações que achar que são relevantes sobre sua casa digital (site)"}
                       rows={4}
                       className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light resize-none"
                       required
