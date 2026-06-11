@@ -71,12 +71,12 @@ export default function Home() {
         <section className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
           <AnimatedText>
             <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
-              Digital Identity
+              VT Immersive Systems
             </h1>
           </AnimatedText>
           <AnimatedText className="delay-100">
             <p className="text-xl md:text-2xl text-gray-300 max-w-2xl font-light">
-              Pioneirismo em experiências digitais imersivas. O futuro da web não é plano, é tridimensional e interativo.
+              O futuro da tecnologia não é plano, é tridimensional e interativo e o nosso desafio é gerar resultados
             </p>
           </AnimatedText>
           <AnimatedText className="mt-12">
@@ -96,12 +96,12 @@ export default function Home() {
           >
             <AnimatedText direction="left">
               <h2 className="text-4xl md:text-6xl font-semibold mb-8">
-                A Arte do <span className="italic text-indigo-400">Creative Coding</span>.
+                Tecnologia que vai <span className="italic text-indigo-400">além da tela</span>
               </h2>
             </AnimatedText>
             <AnimatedText direction="left">
               <p className="text-lg md:text-xl text-gray-300 max-w-3xl leading-relaxed mb-6 font-light">
-                Agências como a Resn nos mostram que a web é um canvas em branco. Utilizando WebGL, Shaders e algoritmos avançados, criamos sites que não apenas entregam informação, mas contam uma história de forma inesquecível.
+                Cada projeto nasce da combinação entre estratégia, design e engenharia. Criamos experiências que não apenas informam, mas envolvem, surpreendem e geram valor para quem utiliza
               </p>
             </AnimatedText>
           </div>
@@ -116,26 +116,26 @@ export default function Home() {
           >
             <AnimatedText direction="right">
               <h2 className="text-4xl md:text-6xl font-semibold mb-8">
-                Nossas Tecnologias
+                Nossas Ferramentas
               </h2>
             </AnimatedText>
             <div className="space-y-6">
               <AnimatedText direction="right">
                 <div className="border-b border-white/20 pb-4">
-                  <h3 className="text-2xl font-medium mb-2 text-indigo-300">Three.js & WebGL</h3>
-                  <p className="text-gray-400 font-light">Renderização 3D acelerada por hardware direto no navegador.</p>
+                  <h3 className="text-2xl font-medium mb-2 text-indigo-300">Aplicativos Mobile</h3>
+                  <p className="text-gray-400 font-light">Soluções multiplataforma para Android e iOS com foco em usabilidade e desempenho.</p>
                 </div>
               </AnimatedText>
               <AnimatedText direction="right">
                 <div className="border-b border-white/20 pb-4">
-                  <h3 className="text-2xl font-medium mb-2 text-purple-300">GSAP Animations</h3>
-                  <p className="text-gray-400 font-light">Controle absoluto sobre as linhas do tempo e gatilhos de scroll complexos.</p>
+                  <h3 className="text-2xl font-medium mb-2 text-purple-300">Integrações Inteligentes</h3>
+                  <p className="text-gray-400 font-light">Conexão com APIs, meios de pagamento, ERPs, CRMs e ferramentas de automação.</p>
                 </div>
               </AnimatedText>
               <AnimatedText direction="right">
                 <div className="border-b border-white/20 pb-4">
-                  <h3 className="text-2xl font-medium mb-2 text-pink-300">Next.js & React</h3>
-                  <p className="text-gray-400 font-light">A fundação robusta para roteamento e escalabilidade moderna.</p>
+                  <h3 className="text-2xl font-medium mb-2 text-pink-300">Inteligência Artificial</h3>
+                  <p className="text-gray-400 font-light">Automação de processos, análise de dados, assistentes virtuais e soluções impulsionadas por IA.</p>
                 </div>
               </AnimatedText>
             </div>

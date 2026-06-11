@@ -91,7 +91,12 @@ export default function ProdutoDetalhe({ params }) {
   const slug = resolvedParams.slug;
   const product = PRODUCTS_DATA[slug];
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [siteTitle, setSiteTitle] = useState('');
+  const [segment, setSegment] = useState('');
+  const [referenceSites, setReferenceSites] = useState([]);
+  const [referenceInput, setReferenceInput] = useState('');
+  const [description, setDescription] = useState('');
 
   if (!product) {
     return (
@@ -104,26 +109,34 @@ export default function ProdutoDetalhe({ params }) {
     );
   }
 
-  const playFrequency = () => {
-    setIsPlaying(true);
-    setTimeout(() => setIsPlaying(false), 1500);
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    if (pastedText && pastedText.trim() !== '') {
+      setReferenceSites((prev) => [...prev, pastedText.trim()]);
+      setReferenceInput('');
+    }
+  };
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (referenceInput.trim() !== '') {
+        setReferenceSites((prev) => [...prev, referenceInput.trim()]);
+        setReferenceInput('');
+      }
+    }
+  };
 
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(product.frequency, audioCtx.currentTime);
-
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.7, audioCtx.currentTime + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    oscillator.start(audioCtx.currentTime);
-    oscillator.stop(audioCtx.currentTime + 1.5);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const message = `Olá! Gostaria de falar sobre o meu projeto:
+- Título do site: ${siteTitle}
+- Segmento: ${segment}
+- Referências: ${referenceSites.join(', ')}
+- Descrição: ${description}`;
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/5511970741310?text=${encodedMessage}`, '_blank');
   };
 
   return (
@@ -150,10 +163,10 @@ export default function ProdutoDetalhe({ params }) {
           {/* Header */}
           <div className="mb-8">
             <span className={`inline-block px-4 py-1.5 text-xs uppercase tracking-widest rounded-full bg-gradient-to-r ${product.color} text-black font-semibold mb-4`}>
-              {product.subtitle}
+              {product.title}
             </span>
             <h1 className="text-3xl md:text-5xl font-extralight tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 leading-tight">
-              {product.title}
+              {product.subtitle}
             </h1>
           </div>
 
@@ -177,35 +190,126 @@ export default function ProdutoDetalhe({ params }) {
             </div>
           </div>
 
-          {/* Player de Frequência Harmônica */}
-          <div className="border-t border-white/5 pt-10 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-1">Frequência Harmônica</h3>
-              <p className="text-sm text-indigo-300 font-mono tracking-wide">{product.freqLabel}</p>
-            </div>
-            
-            <button
-              onClick={playFrequency}
-              className={`w-full md:w-auto px-8 py-4 rounded-full font-semibold tracking-wider text-black bg-white hover:bg-gray-100 transition-all duration-300 flex items-center justify-center gap-3 active:scale-95 shadow-lg cursor-pointer ${isPlaying ? 'scale-95 brightness-90 animate-pulse' : 'hover:scale-105 hover:shadow-white/10'}`}
-            >
-              {isPlaying ? (
-                <>
-                  <span className="flex gap-1 h-3 items-center">
-                    <span className="w-[3px] h-3 bg-black rounded-full animate-bounce"></span>
-                    <span className="w-[3px] h-2 bg-black rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                    <span className="w-[3px] h-4 bg-black rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                  </span>
-                  Ressonando...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                  Tocar Frequência
-                </>
-              )}
-            </button>
+          {/* Botão Vamos conversar e Formulário */}
+          <div className="mt-8 border-t border-white/5 pt-8">
+            {!isFormOpen ? (
+              <button
+                onClick={() => setIsFormOpen(true)}
+                className={`w-full md:w-auto px-8 py-4 rounded-full font-semibold tracking-wider text-black bg-gradient-to-r ${product.color} hover:opacity-90 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 active:scale-95 shadow-lg cursor-pointer`}
+              >
+                Vamos conversar
+              </button>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium tracking-wide text-white">Nos conte sobre o seu projeto</h3>
+                  <button 
+                    type="button"
+                    onClick={() => setIsFormOpen(false)}
+                    className="text-xs uppercase tracking-widest text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    Fechar formulário
+                  </button>
+                </div>
+                
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Título do site</label>
+                    <input
+                      type="text"
+                      value={siteTitle}
+                      onChange={(e) => setSiteTitle(e.target.value)}
+                      placeholder="Ex: Meu E-commerce Premium"
+                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Segmento de atuação</label>
+                    <input
+                      type="text"
+                      value={segment}
+                      onChange={(e) => setSegment(e.target.value)}
+                      placeholder="Ex: Tecnologia, Moda, Alimentação..."
+                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Alguns sites de referência</label>
+                    <input
+                      type="text"
+                      value={referenceInput}
+                      onChange={(e) => setReferenceInput(e.target.value)}
+                      onPaste={handlePaste}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Cole o link"
+                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
+                    />
+                    
+                    {/* Lista de links colados */}
+                    {referenceSites.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {referenceSites.map((site, index) => (
+                          <div 
+                            key={index}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300"
+                          >
+                            <span className="truncate max-w-[200px] font-mono">{site}</span>
+                            <button
+                              type="button"
+                              onClick={() => setReferenceSites(prev => prev.filter((_, i) => i !== index))}
+                              className="text-gray-400 hover:text-white font-bold cursor-pointer"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Pequena descrição do site</label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Compartilhe as informações que achar que são relevantes sobre sua casa digital (site)"
+                      rows={4}
+                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light resize-none"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-4 rounded-xl font-semibold tracking-wider text-black bg-white hover:bg-gray-200 transition-all duration-300 active:scale-95 shadow-lg cursor-pointer text-center"
+                  >
+                    Enviar Proposta por WhatsApp
+                  </button>
+                </form>
+
+                {/* Alternativa do WhatsApp Direto */}
+                <div className="flex flex-col items-center justify-center pt-6 border-t border-white/5 space-y-3">
+                  <span className="text-xs uppercase tracking-[0.3em] text-gray-500">ou</span>
+                  <p className="text-sm text-gray-400 font-light">Me mande uma mensagem direto e vamos falar.</p>
+                  
+                  <a
+                    href="https://wa.me/5511970741310?text=Ol%C3%A1!%20Gostaria%20de%20conversar%20sobre%20meu%20projeto."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-8 py-4 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 flex items-center gap-2 text-sm font-semibold hover:scale-105 active:scale-95 cursor-pointer shadow-lg"
+                  >
+                    <svg className="w-5 h-5 fill-current text-emerald-400" viewBox="0 0 24 24">
+                      <path d="M12.012 2c-5.506 0-9.988 4.482-9.988 9.988 0 1.758.459 3.473 1.332 4.987l-1.356 4.954 5.074-1.33c1.458.795 3.09 1.217 4.75 1.217h.004c5.506 0 9.99-4.484 9.99-9.99 0-2.67-1.04-5.18-2.93-7.07-1.89-1.89-4.4-2.93-7.076-2.93zm5.836 14.195c-.24.675-1.18 1.312-1.63 1.373-.45.06-1.01.12-2.9-.62-2.42-.96-3.97-3.41-4.09-3.58-.12-.17-.99-1.31-.99-2.5 0-1.19.62-1.78.84-2.02.22-.24.49-.3.65-.3h.47c.15 0 .36-.06.56.42.2.49.69 1.68.75 1.8.06.12.1.27.02.43-.08.16-.12.26-.24.4-.12.14-.26.31-.37.42-.12.12-.25.25-.11.49.14.24.62 1.02 1.33 1.65.91.81 1.68 1.06 1.92 1.18.24.12.38.1.52-.06.14-.17.61-.71.77-.95.16-.24.32-.2.54-.12.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.1.06.57-.18 1.25z"/>
+                    </svg>
+                    Falar no WhatsApp
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
