@@ -90,6 +90,9 @@ export default function ProdutoDetalhe({ params }) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
   const product = PRODUCTS_DATA[slug];
+  
+  const isCustomForm = ['horizontes', 'materia', 'fluxo', 'ecos'].includes(slug);
+  const hideTechBadges = ['horizontes', 'materia', 'fluxo'].includes(slug);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [siteTitle, setSiteTitle] = useState('');
@@ -132,8 +135,8 @@ export default function ProdutoDetalhe({ params }) {
     e.preventDefault();
     let message = '';
     
-    if (slug === 'horizontes') {
-      message = `Olá! Gostaria de falar sobre o meu projeto de software:
+    if (isCustomForm) {
+      message = `Olá! Gostaria de falar sobre o meu projeto:
 - Descrição: ${description}`;
     } else {
       message = `Olá! Gostaria de falar sobre o meu projeto:
@@ -186,7 +189,7 @@ export default function ProdutoDetalhe({ params }) {
           </p>
 
           {/* Badges de Tecnologias */}
-          {slug !== 'horizontes' && (
+          {!hideTechBadges && (
             <div className="mb-12">
               <h3 className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-4">Tecnologias Envolvidas</h3>
               <div className="flex flex-wrap gap-2">
@@ -225,7 +228,7 @@ export default function ProdutoDetalhe({ params }) {
                 </div>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {slug !== 'horizontes' && (
+                  {!isCustomForm && (
                     <>
                       <div>
                         <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Título do site</label>
@@ -235,7 +238,7 @@ export default function ProdutoDetalhe({ params }) {
                           onChange={(e) => setSiteTitle(e.target.value)}
                           placeholder="Ex: Meu E-commerce Premium"
                           className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
-                          required={slug !== 'horizontes'}
+                          required={!isCustomForm}
                         />
                       </div>
 
@@ -247,7 +250,7 @@ export default function ProdutoDetalhe({ params }) {
                           onChange={(e) => setSegment(e.target.value)}
                           placeholder="Ex: Tecnologia, Moda, Alimentação..."
                           className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light"
-                          required={slug !== 'horizontes'}
+                          required={!isCustomForm}
                         />
                       </div>
 
@@ -289,12 +292,12 @@ export default function ProdutoDetalhe({ params }) {
 
                   <div>
                     <label className="block text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">
-                      {slug === 'horizontes' ? 'Pequena descrição do projeto' : 'Pequena descrição do site'}
+                      {isCustomForm ? 'Pequena descrição do projeto' : 'Pequena descrição do site'}
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder={slug === 'horizontes' ? "Descreva o que o sistema precisará fazer." : "Compartilhe as informações que achar que são relevantes sobre sua casa digital (site)"}
+                      placeholder={isCustomForm ? "Descreva o que o projeto precisará fazer." : "Compartilhe as informações que achar que são relevantes sobre sua casa digital (site)"}
                       rows={4}
                       className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.02] focus:bg-white/[0.05] focus:border-indigo-500 focus:outline-none text-white transition-all font-light resize-none"
                       required
