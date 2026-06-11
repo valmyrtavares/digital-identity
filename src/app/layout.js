@@ -18,8 +18,10 @@ export const metadata = {
 
 import SmoothScroll from "@/components/SmoothScroll";
 import { MenuProvider } from "@/context/MenuContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import Scene from "@/components/Scene";
 import AudioVisualizer from "@/components/AudioVisualizer";
+import LanguageToggle from "@/components/LanguageToggle";
 
 export default function RootLayout({ children }) {
   return (
@@ -29,11 +31,14 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[#050505] text-white" suppressHydrationWarning>
-        <MenuProvider>
-          <Scene />
-          <AudioVisualizer />
-          <SmoothScroll>{children}</SmoothScroll>
-        </MenuProvider>
+        <LanguageProvider>
+          <MenuProvider>
+            <Scene />
+            <AudioVisualizer />
+            <LanguageToggle />
+            <SmoothScroll>{children}</SmoothScroll>
+          </MenuProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

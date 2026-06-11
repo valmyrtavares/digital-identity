@@ -3,22 +3,28 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
 const PROJECTS = [
-  { line1: "I. Genesis", line2: "Quântico", business: "Websites", top: "15%", left: "10%", size: "text-2xl md:text-3xl", depth: 0.8, slug: "genesis" },
-  { line1: "II. Ressonância", line2: "do Vazio", business: "Landing Pages", top: "35%", right: "15%", size: "text-3xl md:text-4xl", depth: 1.2, slug: "ressonancia" },
-  { line1: "III. Horizontes", line2: "de Neon", business: "Soluções Customizadas", top: "55%", left: "20%", size: "text-4xl md:text-5xl", depth: 1.5, slug: "horizontes" },
-  { line1: "IV. Ecos", line2: "do Silêncio", business: "Edição de Vídeo", top: "10%", right: "25%", size: "text-xl md:text-2xl", depth: 0.5, slug: "ecos" },
-  { line1: "V. Ondas", line2: "Cromáticas", business: "Meus Produtos", top: "70%", right: "30%", size: "text-2xl md:text-4xl", depth: 1.1, slug: "ondas" },
-  { line1: "VI. Desvio", line2: "Temporal", business: "ERP Gastronômico", top: "25%", left: "35%", size: "text-4xl md:text-6xl", depth: 2.0, slug: "desvio" },
-  { line1: "VII. Matéria", line2: "Escura", business: "Desenvolvedor Full Stack", top: "80%", left: "15%", size: "text-xl md:text-3xl", depth: 0.6, slug: "materia" },
-  { line1: "VIII. Fluxo", line2: "de Pragma", business: "Consultoria Tech", top: "85%", right: "15%", size: "text-2xl md:text-3xl", depth: 0.9, slug: "fluxo" },
+  { line1_pt: "I. Genesis", line2_pt: "Quântico", line1_en: "I. Quantum", line2_en: "Genesis", business_pt: "Websites", business_en: "Websites", top: "15%", left: "10%", size: "text-2xl md:text-3xl", depth: 0.8, slug: "genesis" },
+  { line1_pt: "II. Ressonância", line2_pt: "do Vazio", line1_en: "II. Resonance", line2_en: "of the Void", business_pt: "Landing Pages", business_en: "Landing Pages", top: "35%", right: "15%", size: "text-3xl md:text-4xl", depth: 1.2, slug: "ressonancia" },
+  { line1_pt: "III. Horizontes", line2_pt: "de Neon", line1_en: "III. Neon", line2_en: "Horizons", business_pt: "Soluções Customizadas", business_en: "Custom Software", top: "55%", left: "20%", size: "text-4xl md:text-5xl", depth: 1.5, slug: "horizontes" },
+  { line1_pt: "IV. Ecos", line2_pt: "do Silêncio", line1_en: "IV. Echoes", line2_en: "of Silence", business_pt: "Edição de Vídeo", business_en: "Video Editing", top: "10%", right: "25%", size: "text-xl md:text-2xl", depth: 0.5, slug: "ecos" },
+  { line1_pt: "V. Ondas", line2_pt: "Cromáticas", line1_en: "V. Chromatic", line2_en: "Waves", business_pt: "Meus Produtos", business_en: "My Products", top: "70%", right: "30%", size: "text-2xl md:text-4xl", depth: 1.1, slug: "ondas" },
+  { line1_pt: "VI. Desvio", line2_pt: "Temporal", line1_en: "VI. Temporal", line2_en: "Deviation", business_pt: "ERP Gastronômico", business_en: "Gastronomic ERP", top: "25%", left: "35%", size: "text-4xl md:text-6xl", depth: 2.0, slug: "desvio" },
+  { line1_pt: "VII. Matéria", line2_pt: "Escura", line1_en: "VII. Dark", line2_en: "Matter", business_pt: "Desenvolvedor Full Stack", business_en: "Full Stack Developer", top: "80%", left: "15%", size: "text-xl md:text-3xl", depth: 0.6, slug: "materia" },
+  { line1_pt: "VIII. Fluxo", line2_pt: "de Pragma", line1_en: "VIII. Pragma", line2_en: "Flow", business_pt: "Consultoria Tech", business_en: "Tech Consulting", top: "85%", right: "15%", size: "text-2xl md:text-3xl", depth: 0.9, slug: "fluxo" },
 ];
 
 const GLITCH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;':,./<>?";
 
 const GlitchItem = ({ project, index, addToRefs }) => {
-  const [displayText, setDisplayText] = useState(`${project.line1} ${project.line2}`);
+  const { language } = useLanguage();
+  const line1 = language === 'pt' ? project.line1_pt : project.line1_en;
+  const line2 = language === 'pt' ? project.line2_pt : project.line2_en;
+  const business = language === 'pt' ? project.business_pt : project.business_en;
+  
+  const [displayText, setDisplayText] = useState(`${line1} ${line2}`);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const intervalRef = useRef(null);
@@ -31,17 +37,25 @@ const GlitchItem = ({ project, index, addToRefs }) => {
       setIsMobile(mobile);
       if (mobile) {
         setIsHovered(true);
-        setDisplayText(project.business.toUpperCase());
+        setDisplayText(business.toUpperCase());
       } else if (!isHovered && !hoverStateRef.current) {
         setIsHovered(false);
-        setDisplayText(`${project.line1} ${project.line2}`);
+        setDisplayText(`${line1} ${line2}`);
       }
     };
     
     handleResize(); // Initial check
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [project]);
+  }, [project, line1, line2, business]);
+
+  useEffect(() => {
+    if (!isHovered && !isMobile) {
+      setDisplayText(`${line1} ${line2}`);
+    } else if (isMobile) {
+      setDisplayText(business.toUpperCase());
+    }
+  }, [language, line1, line2, business]);
 
   useEffect(() => {
     if (isMobile) return;
@@ -55,14 +69,14 @@ const GlitchItem = ({ project, index, addToRefs }) => {
       
       if (!hoverStateRef.current) {
         setIsHovered(true);
-        doGlitch(project.business.toUpperCase());
+        doGlitch(business.toUpperCase());
       }
       
       revertTimeout = setTimeout(() => {
         if (isCancelled) return;
         if (!hoverStateRef.current) {
           setIsHovered(false);
-          doGlitch(`${project.line1} ${project.line2}`);
+          doGlitch(`${line1} ${line2}`);
         }
       }, 2500);
       
@@ -107,18 +121,18 @@ const GlitchItem = ({ project, index, addToRefs }) => {
     if (isMobile) return;
     hoverStateRef.current = true;
     setIsHovered(true);
-    doGlitch(project.business.toUpperCase());
+    doGlitch(business.toUpperCase());
   };
 
   const handleMouseLeave = () => {
     if (isMobile) return;
     hoverStateRef.current = false;
     setIsHovered(false);
-    doGlitch(`${project.line1} ${project.line2}`);
+    doGlitch(`${line1} ${line2}`);
   };
 
   const handleClick = (e) => {
-    e.currentTarget.innerHTML = "<span class='text-white font-mono text-2xl tracking-widest bg-black/50 px-4 py-2 rounded-full border border-white/20'>CARREGANDO...</span>";
+    e.currentTarget.innerHTML = `<span class='text-white font-mono text-2xl tracking-widest bg-black/50 px-4 py-2 rounded-full border border-white/20'>${language === 'pt' ? 'CARREGANDO...' : 'LOADING...'}</span>`;
     router.push(`/produtos/${project.slug}`);
   };
 
@@ -138,11 +152,11 @@ const GlitchItem = ({ project, index, addToRefs }) => {
       onClick={handleClick}
     >
       <span className={`font-light tracking-widest transition-all duration-300 ${isHovered ? 'text-pink-300 drop-shadow-[0_0_15px_rgba(236,72,153,0.8)] font-mono font-bold tracking-tight' : 'text-transparent bg-clip-text bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400'}`}>
-        {isHovered ? displayText : project.line1}
+        {isHovered ? displayText : line1}
       </span>
       {!isHovered && (
         <span className="font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-pink-300 to-purple-500 transition-all duration-500 ml-8 md:ml-12 text-[0.7em]">
-          {project.line2}
+          {line2}
         </span>
       )}
     </div>

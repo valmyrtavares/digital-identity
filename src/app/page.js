@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AnimatedText from '@/components/AnimatedText';
 import { useMenu } from '@/context/MenuContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Home() {
   const { toggleMenu } = useMenu();
+  const { language } = useLanguage();
   const [isOracleVisible, setIsOracleVisible] = useState(false);
   const router = useRouter();
 
@@ -50,7 +52,11 @@ export default function Home() {
             href="#"
             className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300 text-xl md:text-2xl font-light tracking-widest uppercase leading-tight drop-shadow-[0_0_15px_rgba(139,92,246,0.8)] max-w-[120px] md:max-w-[150px] mx-auto block pointer-events-none select-none"
           >
-            Consulte<br/>O Oráculo
+            {language === 'pt' ? (
+              <>Consulte<br/>O Oráculo</>
+            ) : (
+              <>Consult<br/>The Oracle</>
+            )}
           </a>
         </div>
       </div>
@@ -81,12 +87,14 @@ export default function Home() {
           </AnimatedText>
           <AnimatedText className="delay-100">
             <p className="text-xl md:text-2xl text-gray-300 max-w-2xl font-light">
-              O futuro da tecnologia não é plano, é tridimensional e interativo e o nosso desafio é gerar resultados
+              {language === 'pt' 
+                ? 'O futuro da tecnologia não é plano, é tridimensional e interativo e o nosso desafio é gerar resultados'
+                : 'The future of technology is not flat, it is three-dimensional and interactive, and our challenge is to drive results'}
             </p>
           </AnimatedText>
           <AnimatedText className="mt-12">
             <div className="text-base tracking-[0.2em] font-medium uppercase text-purple-200 animate-bounce drop-shadow-[0_0_10px_rgba(167,139,250,0.8)]">
-              [ Role para baixo ]
+              {language === 'pt' ? '[ Role para baixo ]' : '[ Scroll down ]'}
             </div>
           </AnimatedText>
         </section>
@@ -101,12 +109,18 @@ export default function Home() {
           >
             <AnimatedText direction="left">
               <h2 className="text-4xl md:text-6xl font-semibold mb-8">
-                Tecnologia que vai <span className="italic text-indigo-400">além da tela</span>
+                {language === 'pt' ? (
+                  <>Tecnologia que vai <span className="italic text-indigo-400">além da tela</span></>
+                ) : (
+                  <>Technology that goes <span className="italic text-indigo-400">beyond the screen</span></>
+                )}
               </h2>
             </AnimatedText>
             <AnimatedText direction="left">
               <p className="text-lg md:text-xl text-gray-300 max-w-3xl leading-relaxed mb-6 font-light">
-                Cada projeto nasce da combinação entre estratégia, design e engenharia. Criamos experiências que não apenas informam, mas envolvem, surpreendem e geram valor para quem utiliza
+                {language === 'pt'
+                  ? 'Cada projeto nasce da combinação entre estratégia, design e engenharia. Criamos experiências que não apenas informam, mas envolvem, surpreendem e geram valor para quem utiliza'
+                  : 'Every project is born from the combination of strategy, design, and engineering. We create experiences that don\'t just inform, but engage, surprise, and generate value for the users'}
               </p>
             </AnimatedText>
           </div>
@@ -121,26 +135,44 @@ export default function Home() {
           >
             <AnimatedText direction="right">
               <h2 className="text-4xl md:text-6xl font-semibold mb-8">
-                Nossas Ferramentas
+                {language === 'pt' ? 'Nossas Ferramentas' : 'Our Tools'}
               </h2>
             </AnimatedText>
             <div className="space-y-6">
               <AnimatedText direction="right">
                 <div className="border-b border-white/20 pb-4">
-                  <h3 className="text-2xl font-medium mb-2 text-indigo-300">Aplicativos Mobile</h3>
-                  <p className="text-gray-400 font-light">Soluções multiplataforma para Android e iOS com foco em usabilidade e desempenho.</p>
+                  <h3 className="text-2xl font-medium mb-2 text-indigo-300">
+                    {language === 'pt' ? 'Aplicativos Mobile' : 'Mobile Applications'}
+                  </h3>
+                  <p className="text-gray-400 font-light">
+                    {language === 'pt' 
+                      ? 'Soluções multiplataforma para Android e iOS com foco em usabilidade e desempenho.'
+                      : 'Cross-platform solutions for Android and iOS focusing on usability and performance.'}
+                  </p>
                 </div>
               </AnimatedText>
               <AnimatedText direction="right">
                 <div className="border-b border-white/20 pb-4">
-                  <h3 className="text-2xl font-medium mb-2 text-purple-300">Integrações Inteligentes</h3>
-                  <p className="text-gray-400 font-light">Conexão com APIs, meios de pagamento, ERPs, CRMs e ferramentas de automação.</p>
+                  <h3 className="text-2xl font-medium mb-2 text-purple-300">
+                    {language === 'pt' ? 'Integrações Inteligentes' : 'Smart Integrations'}
+                  </h3>
+                  <p className="text-gray-400 font-light">
+                    {language === 'pt'
+                      ? 'Conexão com APIs, meios de pagamento, ERPs, CRMs e ferramentas de automação.'
+                      : 'Connection with APIs, payment gateways, ERPs, CRMs, and automation tools.'}
+                  </p>
                 </div>
               </AnimatedText>
               <AnimatedText direction="right">
                 <div className="border-b border-white/20 pb-4">
-                  <h3 className="text-2xl font-medium mb-2 text-pink-300">Inteligência Artificial</h3>
-                  <p className="text-gray-400 font-light">Automação de processos, análise de dados, assistentes virtuais e soluções impulsionadas por IA.</p>
+                  <h3 className="text-2xl font-medium mb-2 text-pink-300">
+                    {language === 'pt' ? 'Inteligência Artificial' : 'Artificial Intelligence'}
+                  </h3>
+                  <p className="text-gray-400 font-light">
+                    {language === 'pt'
+                      ? 'Automação de processos, análise de dados, assistentes virtuais e soluções impulsionadas por IA.'
+                      : 'Process automation, data analysis, virtual assistants, and AI-driven solutions.'}
+                  </p>
                 </div>
               </AnimatedText>
             </div>
@@ -155,7 +187,9 @@ export default function Home() {
         {/* Footer */}
         <footer className="py-12 text-center bg-black pointer-events-auto">
           <p className="text-gray-600 font-light text-sm">
-            © {new Date().getFullYear()} Digital Identity. Ponta pé inicial criado por Antigravity.
+            {language === 'pt' 
+              ? `© ${new Date().getFullYear()} Digital Identity. Ponta pé inicial criado por Antigravity.`
+              : `© ${new Date().getFullYear()} Digital Identity. Kickstart created by Antigravity.`}
           </p>
         </footer>
         </div>

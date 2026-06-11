@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMenu } from "@/context/MenuContext";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AudioVisualizer() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
@@ -11,6 +12,7 @@ export default function AudioVisualizer() {
   const audioCtxRef = useRef(null);
   const masterGainRef = useRef(null);
   const { isBusinessPopupOpen } = useMenu();
+  const { language } = useLanguage();
   const pathname = usePathname();
   
   // Real Drum Loop refs
@@ -332,7 +334,7 @@ export default function AudioVisualizer() {
         >
           <div className="bg-black/60 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full text-sm font-light tracking-wide shadow-2xl flex items-center gap-2">
              <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></div>
-             Click to enable sound
+             {language === 'pt' ? 'Clique para ativar o som' : 'Click to enable sound'}
           </div>
         </div>
       )}
@@ -353,17 +355,17 @@ export default function AudioVisualizer() {
           {isLoadingAudio ? (
             <>
               <div className="w-4 h-4 rounded-full border-2 border-pink-400 border-t-transparent animate-spin"></div>
-              Carregando...
+              {language === 'pt' ? 'Carregando...' : 'Loading...'}
             </>
           ) : isAudioEnabled ? (
             <>
               <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></div>
-              Som Ativo
+              {language === 'pt' ? 'Som Ativo' : 'Sound On'}
             </>
           ) : (
             <>
               <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-              Som Mutado
+              {language === 'pt' ? 'Som Mutado' : 'Sound Off'}
             </>
           )}
         </button>
