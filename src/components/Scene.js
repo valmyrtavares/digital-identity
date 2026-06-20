@@ -5,8 +5,11 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, MeshDistortMaterial, Environment, Sparkles, Text, Html, Ring, Plane, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMenu } from "@/context/MenuContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { usePathname } from "next/navigation";
 
 function CustomLoader() {
+  const { language } = useLanguage();
   const { active, progress } = useProgress();
   const [visible, setVisible] = useState(true);
   const [displayProgress, setDisplayProgress] = useState(0);
@@ -49,7 +52,7 @@ function CustomLoader() {
         {Math.floor(displayProgress)}%
       </div>
       <div className="mt-6 text-xs md:text-sm uppercase tracking-[0.5em] text-gray-500">
-        Iniciando Experiência
+        {language === 'pt' ? 'Iniciando Experiência' : 'Initializing Experience'}
       </div>
       <div className="w-48 md:w-64 h-1 bg-white/10 mt-8 rounded-full overflow-hidden">
         <div 
@@ -395,7 +398,9 @@ function ZodiacRing({ toggleMenu }) {
 
 // O Canvas principal que fica fixo no fundo
 export default function Scene() {
-  const { isMenuOpen, toggleMenu } = useMenu();
+  const { toggleMenu } = useMenu();
+  const pathname = usePathname();
+  const isProdutosPage = pathname === '/produtos';
 
   return (
     <>
@@ -407,7 +412,7 @@ export default function Scene() {
           
           <Stardust />
           <ZodiacRing toggleMenu={toggleMenu} />
-          {!isMenuOpen && <InteractiveShape />}
+          {!isProdutosPage && <InteractiveShape />}
           
           {/* Adiciona reflexos e iluminação de ambiente premium */}
           <Environment preset="city" />

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMenu } from "@/context/MenuContext";
+import { usePathname } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AudioVisualizer() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
@@ -9,7 +11,9 @@ export default function AudioVisualizer() {
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const audioCtxRef = useRef(null);
   const masterGainRef = useRef(null);
-  const { isMenuOpen, isBusinessPopupOpen } = useMenu();
+  const { isBusinessPopupOpen } = useMenu();
+  const { language } = useLanguage();
+  const pathname = usePathname();
   
   // Real Drum Loop refs
   const drumMasterGainRef = useRef(null);
@@ -122,12 +126,11 @@ export default function AudioVisualizer() {
 
   }, [isAudioEnabled]);
 
-  // Carregar e tocar o arquivo de áudio real
+  // Carregar o arquivo de áudio real
   useEffect(() => {
     if (!isAudioEnabled || !audioCtxRef.current || drumBufferRef.current) return;
     
     setIsLoadingAudio(true);
-    // Tenta carregar o arquivo real da pasta public
     fetch('/drum-loop.mp3')
       .then(res => {
         if (!res.ok) throw new Error("Arquivo não encontrado.");
@@ -137,41 +140,62 @@ export default function AudioVisualizer() {
       .then(decodedBuffer => {
         drumBufferRef.current = decodedBuffer;
         setIsLoadingAudio(false);
-        
-        // Inicia o loop de bateria
-        if (drumSourceRef.current) {
-          drumSourceRef.current.stop();
-          drumSourceRef.current.disconnect();
-        }
-        
-        const source = audioCtxRef.current.createBufferSource();
-        source.buffer = decodedBuffer;
-        source.loop = true;
-        source.connect(drumFilterRef.current);
-        source.start(0);
-        drumSourceRef.current = source;
       })
       .catch(err => {
-        console.error("Erro ao carregar o loop de bateria (adicione drum-loop.mp3 na pasta public):", err);
+        console.error("Erro ao carregar o loop de bateria:", err);
         setIsLoadingAudio(false);
       });
   }, [isAudioEnabled]);
 
-  // Controle de volume do loop de bateria (fade out no menu)
+  // Handle Route changes for Drum Loop volume and restart
   useEffect(() => {
     if (!isAudioEnabled || !audioCtxRef.current) return;
     const ctx = audioCtxRef.current;
-    
-    if (isMenuOpen) {
+    const isProductRoute = pathname.startsWith("/produtos");
+
+    if (isProductRoute) {
+      // Fade out drum loop
       if (drumMasterGainRef.current) {
-         drumMasterGainRef.current.gain.setTargetAtTime(0, ctx.currentTime, 0.5);
+        drumMasterGainRef.current.gain.setTargetAtTime(0, ctx.currentTime, 0.5);
+      }
+      
+      // Stop the drum source to release resources
+      if (drumSourceRef.current) {
+        try {
+          drumSourceRef.current.stop();
+        } catch (e) {
+          // ignore
+        }
+        drumSourceRef.current.disconnect();
+        drumSourceRef.current = null;
       }
     } else {
+      // We are on Home ("/")
+      // Fade in drum loop
       if (drumMasterGainRef.current) {
-         drumMasterGainRef.current.gain.setTargetAtTime(0.8, ctx.currentTime, 0.5);
+        drumMasterGainRef.current.gain.setTargetAtTime(0.8, ctx.currentTime, 0.5);
+      }
+
+      // Restart drum loop from the beginning
+      if (drumBufferRef.current) {
+        try {
+          if (drumSourceRef.current) {
+            drumSourceRef.current.stop();
+            drumSourceRef.current.disconnect();
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        const source = ctx.createBufferSource();
+        source.buffer = drumBufferRef.current;
+        source.loop = true;
+        source.connect(drumFilterRef.current);
+        source.start(0);
+        drumSourceRef.current = source;
       }
     }
-  }, [isAudioEnabled, isMenuOpen]);
+  }, [pathname, isAudioEnabled, drumBufferRef.current]);
 
   // Handle Business Popup Silence
   useEffect(() => {
@@ -185,19 +209,20 @@ export default function AudioVisualizer() {
     }
   }, [isBusinessPopupOpen, isAudioEnabled]);
 
-  // Handle Menu Open/Close Cathedral Xylophone
+  // Handle Route changes and Cathedral Xylophone
   useEffect(() => {
     if (!isAudioEnabled || !audioCtxRef.current || !xyloInputRef.current) return;
     const time = audioCtxRef.current.currentTime;
+    const isProductRoute = pathname.startsWith("/produtos");
     let timeoutId;
 
-    if (isMenuOpen) {
+    if (isProductRoute) {
       cathedralMasterGainRef.current.gain.setTargetAtTime(0.5, time, 0.1);
       cathedralLfoGainRef.current.gain.setTargetAtTime(0.4, time, 0.1); 
       feedbackGainRef.current.gain.setTargetAtTime(0.65, time, 0.1);
 
       const playRandomNote = () => {
-        if (!isMenuOpen || !audioCtxRef.current) return;
+        if (!audioCtxRef.current) return;
 
         const now = audioCtxRef.current.currentTime;
         const freqs = [261.63, 311.13, 369.99, 440.00];
@@ -232,7 +257,7 @@ export default function AudioVisualizer() {
     }
 
     return () => clearTimeout(timeoutId);
-  }, [isMenuOpen, isAudioEnabled]);
+  }, [pathname, isAudioEnabled]);
 
   // Handle Global Interactions and Mouse Follower
   useEffect(() => {
@@ -241,23 +266,6 @@ export default function AudioVisualizer() {
       if (!isAudioEnabled && !hasInteracted) {
         setIsAudioEnabled(true);
         setHasInteracted(true);
-      } else if (isAudioEnabled && drumBufferRef.current && audioCtxRef.current) {
-        // Reinicia o áudio ao clicar novamente na tela
-        if (drumSourceRef.current) {
-          try {
-            drumSourceRef.current.stop();
-          } catch (e) {
-            // Ignora erro se já estiver parado
-          }
-          drumSourceRef.current.disconnect();
-        }
-        
-        const source = audioCtxRef.current.createBufferSource();
-        source.buffer = drumBufferRef.current;
-        source.loop = true;
-        source.connect(drumFilterRef.current);
-        source.start(0);
-        drumSourceRef.current = source;
       }
     };
     
@@ -271,7 +279,7 @@ export default function AudioVisualizer() {
         cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
 
-      if (isMenuOpen) return;
+      if (pathname.startsWith("/produtos")) return;
 
       const x = e.clientX / window.innerWidth;
       const y = e.clientY / window.innerHeight;
@@ -293,14 +301,14 @@ export default function AudioVisualizer() {
 
     const handleMouseDown = () => {
       isDraggingRef.current = true;
-      if (isAudioEnabled && audioCtxRef.current && drumFilterRef.current && !isMenuOpen) {
+      if (isAudioEnabled && audioCtxRef.current && drumFilterRef.current && !pathname.startsWith("/produtos")) {
          drumFilterRef.current.Q.setTargetAtTime(5, audioCtxRef.current.currentTime, 0.1);
       }
     };
 
     const handleMouseUp = () => {
       isDraggingRef.current = false;
-      if (isAudioEnabled && audioCtxRef.current && drumFilterRef.current && !isMenuOpen) {
+      if (isAudioEnabled && audioCtxRef.current && drumFilterRef.current && !pathname.startsWith("/produtos")) {
          drumFilterRef.current.Q.setTargetAtTime(1, audioCtxRef.current.currentTime, 0.1);
       }
     };
@@ -314,7 +322,7 @@ export default function AudioVisualizer() {
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [isAudioEnabled, isMenuOpen, hasInteracted]);
+  }, [isAudioEnabled, pathname, hasInteracted]);
 
   return (
     <>
@@ -326,7 +334,7 @@ export default function AudioVisualizer() {
         >
           <div className="bg-black/60 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full text-sm font-light tracking-wide shadow-2xl flex items-center gap-2">
              <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></div>
-             Click to enable sound
+             {language === 'pt' ? 'Clique para ativar o som' : 'Click to enable sound'}
           </div>
         </div>
       )}
@@ -347,17 +355,17 @@ export default function AudioVisualizer() {
           {isLoadingAudio ? (
             <>
               <div className="w-4 h-4 rounded-full border-2 border-pink-400 border-t-transparent animate-spin"></div>
-              Carregando...
+              {language === 'pt' ? 'Carregando...' : 'Loading...'}
             </>
           ) : isAudioEnabled ? (
             <>
               <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></div>
-              Som Ativo
+              {language === 'pt' ? 'Som Ativo' : 'Sound On'}
             </>
           ) : (
             <>
               <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-              Som Mutado
+              {language === 'pt' ? 'Som Mutado' : 'Sound Off'}
             </>
           )}
         </button>

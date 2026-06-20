@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { useMenu } from "@/context/MenuContext";
+import Link from "next/link";
 
 export default function BusinessPopup() {
   const { isBusinessPopupOpen, closeBusinessPopup, selectedBusiness } = useMenu();
@@ -67,9 +68,13 @@ export default function BusinessPopup() {
         <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
         
         <div className="flex flex-col gap-6">
-          <p className="text-pink-500 font-mono text-sm tracking-widest uppercase">
+          <Link 
+            href="/produtos"
+            onClick={closeBusinessPopup}
+            className="text-pink-500 font-mono text-sm tracking-widest uppercase cursor-pointer hover:underline inline-block w-fit"
+          >
             {selectedBusiness?.line1} {selectedBusiness?.line2}
-          </p>
+          </Link>
           <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
             {selectedBusiness?.business || "Solução Enterprise"}
           </h2>
