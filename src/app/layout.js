@@ -12,8 +12,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Digital Identity | Creative Coding",
-  description: "Pioneirismo em experiências digitais imersivas e 3D.",
+  title: "VT Tech | Websites, aplicativos, sistemas de gestão e soluções sob medida",
+  description: "Websites, aplicativos, sistemas de gestão e soluções sob medida design e estratégia para gerar resultados",
 };
 
 import SmoothScroll from "@/components/SmoothScroll";

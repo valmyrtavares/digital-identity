@@ -162,6 +162,20 @@ export default function ProdutoDetalhe({ params }) {
             {product.desc}
           </p>
 
+          {slug === "desvio" && (
+            <div className="mb-10">
+              <a 
+                href="https://geracaozsistemas.com.br/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium text-black bg-gradient-to-r from-orange-400 to-rose-400 hover:from-orange-500 hover:to-rose-500 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20"
+              >
+                Visitar Geração Z Sistemas 
+                <span className="text-sm">↗</span>
+              </a>
+            </div>
+          )}
+
           {/* Badges de Tecnologias */}
           <div className="mb-12">
             <h3 className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-4">Tecnologias Envolvidas</h3>

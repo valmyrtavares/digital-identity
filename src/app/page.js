@@ -16,7 +16,7 @@ export default function Home() {
       const startScroll = window.innerHeight * 2.8;
       const endScroll = window.innerHeight * 4.8;
       const scrollY = window.scrollY;
-      
+
       let progress = 0;
       if (scrollY > startScroll) {
         progress = Math.min((scrollY - startScroll) / (endScroll - startScroll), 1);
@@ -35,25 +35,25 @@ export default function Home() {
       <Scene />
 
       {/* Botão Consulte O Oráculo Fixo no Centro (aparece no final) */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none z-20 flex items-center justify-center transition-all duration-1000"
-        style={{ 
+        style={{
           opacity: isOracleVisible ? 1 : 0,
           visibility: isOracleVisible ? 'visible' : 'hidden'
         }}
       >
-        <div 
+        <div
           className="flex flex-col items-center justify-center text-center cursor-pointer rounded-full w-[180px] h-[180px] hover:scale-110 active:scale-95 transition-all duration-500 ease-out pointer-events-auto"
           onClick={(e) => {
             e.preventDefault();
             toggleMenu();
           }}
         >
-          <a 
+          <a
             href="#"
             className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300 text-xl md:text-2xl font-light tracking-widest uppercase leading-tight drop-shadow-[0_0_15px_rgba(139,92,246,0.8)] max-w-[120px] md:max-w-[150px] mx-auto block pointer-events-none select-none"
           >
-            Consulte<br/>O Oráculo
+            Consulte<br />O Oráculo
           </a>
         </div>
       </div>
@@ -71,12 +71,12 @@ export default function Home() {
         <section className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
           <AnimatedText>
             <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
-              Digital Identity
+              VT Tech
             </h1>
           </AnimatedText>
           <AnimatedText className="delay-100">
             <p className="text-xl md:text-2xl text-gray-300 max-w-2xl font-light">
-              Pioneirismo em experiências digitais imersivas. O futuro da web não é plano, é tridimensional e interativo.
+              Websites, aplicativos, sistemas de gestão e soluções sob medida c design e estratégia para gerar resultados
             </p>
           </AnimatedText>
           <AnimatedText className="mt-12">
@@ -150,7 +150,7 @@ export default function Home() {
         {/* Footer */}
         <footer className="py-12 text-center bg-black">
           <p className="text-gray-600 font-light text-sm">
-            © {new Date().getFullYear()} Digital Identity. Ponta pé inicial criado por Antigravity.
+            © {new Date().getFullYear()} VT Tech. Ponta pé inicial criado por Antigravity.
           </p>
         </footer>
       </div>

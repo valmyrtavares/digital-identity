@@ -124,6 +124,10 @@ const GlitchItem = ({ project, index, addToRefs, isMenuOpen }) => {
   };
 
   const handleClick = (e) => {
+    if (project.slug === "desvio") {
+      window.open("https://geracaozsistemas.com.br/", "_blank");
+      return;
+    }
     // Não fechamos o menu aqui para não mostrar a home enquanto a rota carrega
     e.currentTarget.innerHTML = "<span class='text-white font-mono text-2xl tracking-widest bg-black/50 px-4 py-2 rounded-full border border-white/20'>CARREGANDO...</span>";
     router.push(`/produtos/${project.slug}`);
