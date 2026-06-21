@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -154,6 +154,29 @@ export default function ProdutoDetalhe({ params }) {
 
   const [isPlaying, setIsPlaying] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && slug === 'ondas') {
+      const handleHashChange = () => {
+        if (window.location.hash) {
+          const id = window.location.hash.substring(1);
+          const element = document.getElementById(id);
+          if (element) {
+            setTimeout(() => {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 200);
+          }
+        }
+      };
+
+      // Run on mount
+      handleHashChange();
+
+      // Listen for hash changes
+      window.addEventListener('hashchange', handleHashChange);
+      return () => window.removeEventListener('hashchange', handleHashChange);
+    }
+  }, [slug]);
+
   if (slug === "ondas") {
     return (
       <main className="min-h-screen bg-[#050505] text-white flex flex-col items-center p-6 md:p-12 font-sans relative overflow-hidden">
@@ -173,17 +196,44 @@ export default function ProdutoDetalhe({ params }) {
           </div>
 
           {/* Título Principal */}
-          <div className="text-center mb-20">
+          <div className="text-center mb-10">
             <h1 className="text-4xl md:text-6xl font-extralight tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-300 to-gray-500 leading-tight">
               {language === 'pt' ? 'PRODUTOS DIGITAIS' : 'DIGITAL PRODUCTS'}
             </h1>
             <div className="h-[1px] w-24 bg-gradient-to-r from-teal-500 to-pink-500 mx-auto mt-6"></div>
           </div>
 
+          {/* Menu Discreto de Navegação Rápida */}
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-20 text-xs md:text-sm uppercase tracking-[0.2em] text-gray-500 font-light">
+            {[
+              { id: "geracao-z", name: "Geração Z" },
+              { id: "astroclock", name: "Astroclock" },
+              { id: "project-math", name: "Project Math" },
+              { id: "dvd-web", name: "DVD Web" }
+            ].map((item) => (
+              <a 
+                key={item.id} 
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const element = document.getElementById(item.id);
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    window.history.pushState(null, null, `#${item.id}`);
+                  }
+                }}
+                className="hover:text-white transition-colors duration-300 hover:scale-105 active:scale-95 transform px-3 py-1 border border-white/5 rounded-full hover:border-white/20 bg-white/[0.01]"
+              >
+                {item.name}
+              </a>
+            ))}
+          </div>
+
           {/* Projetos */}
           <div className="space-y-16 md:space-y-24">
             {[
               {
+                id: "geracao-z",
                 title_pt: "Geração Z Sistemas",
                 title_en: "Geração Z Sistemas",
                 desc_pt: "ERP Gastronômico inovador desenvolvido para automatizar e otimizar a gestão de restaurantes, bares e bistrôs. Conta com controle ágil de pedidos, gerenciamento de estoque inteligente e faturamento simplificado em tempo real.",
@@ -191,6 +241,7 @@ export default function ProdutoDetalhe({ params }) {
                 img: "/image/Geração z.png"
               },
               {
+                id: "astroclock",
                 title_pt: "Astroclock",
                 title_en: "Astroclock",
                 desc_pt: "Um relógio astronômico interativo que conecta a marcação do tempo aos ciclos celestes. Uma experiência imersiva desenvolvida com conceitos matemáticos e órbitas desenhadas em tempo real.",
@@ -198,6 +249,7 @@ export default function ProdutoDetalhe({ params }) {
                 img: "/image/astroclock.png"
               },
               {
+                id: "project-math",
                 title_pt: "Project Math",
                 title_en: "Project Math",
                 desc_pt: "Plataforma de aprendizado e visualização matemática interativa. Transforma equações complexas e conceitos geométricos em gráficos dinâmicos tridimensionais, interativos e fáceis de compreender.",
@@ -205,6 +257,7 @@ export default function ProdutoDetalhe({ params }) {
                 img: "/image/project math.png"
               },
               {
+                id: "dvd-web",
                 title_pt: "DVD Web",
                 title_en: "DVD Web",
                 desc_pt: "Uma recriação nostálgica e moderna do clássico protetor de tela do DVD. Desenvolvido com físicas leves em tempo real e efeitos visuais interativos que reagem ao comportamento do navegador.",
@@ -217,7 +270,8 @@ export default function ProdutoDetalhe({ params }) {
               return (
                 <div 
                   key={idx} 
-                  className="flex flex-col md:flex-row items-center gap-8 md:gap-16 bg-[#050505] rounded-[32px] border border-white/5 p-8 md:p-12 hover:border-white/10 transition-all duration-500"
+                  id={proj.id}
+                  className="flex flex-col md:flex-row items-center gap-8 md:gap-16 bg-[#050505] rounded-[32px] border border-white/5 p-8 md:p-12 hover:border-white/10 transition-all duration-500 scroll-mt-[10vh]"
                 >
                   {/* Descrição à esquerda */}
                   <div className="flex-1 order-2 md:order-1">
@@ -241,6 +295,9 @@ export default function ProdutoDetalhe({ params }) {
               );
             })}
           </div>
+
+          {/* Espaçador inferior para centralizar o último item */}
+          <div className="h-[75vh]"></div>
 
         </div>
       </main>
