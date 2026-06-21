@@ -152,6 +152,101 @@ export default function ProdutoDetalhe({ params }) {
   const isCustomForm = ['horizontes', 'materia', 'fluxo', 'ecos'].includes(slug);
   const hideTechBadges = ['horizontes', 'materia', 'fluxo'].includes(slug);
 
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  if (slug === "ondas") {
+    return (
+      <main className="min-h-screen bg-[#050505] text-white flex flex-col items-center p-6 md:p-12 font-sans relative overflow-hidden">
+        {/* Background glow radial */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full bg-gradient-to-br from-teal-500/10 via-purple-500/10 to-pink-500/10 opacity-30 blur-[130px] pointer-events-none"></div>
+
+        <div className="max-w-5xl w-full relative z-10">
+          {/* Header de navegação */}
+          <div className="mb-16 flex items-center justify-between">
+            <Link 
+              href="/" 
+              onClick={(e) => { e.currentTarget.innerHTML = `<span class='text-gray-400'>${language === 'pt' ? 'AGUARDE...' : 'WAIT...'}</span>`; }}
+              className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group uppercase tracking-widest"
+            >
+              <span className="group-hover:-translate-x-1 transition-transform">←</span> {language === 'pt' ? 'Início' : 'Home'}
+            </Link>
+          </div>
+
+          {/* Título Principal */}
+          <div className="text-center mb-20">
+            <h1 className="text-4xl md:text-6xl font-extralight tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-300 to-gray-500 leading-tight">
+              {language === 'pt' ? 'PRODUTOS DIGITAIS' : 'DIGITAL PRODUCTS'}
+            </h1>
+            <div className="h-[1px] w-24 bg-gradient-to-r from-teal-500 to-pink-500 mx-auto mt-6"></div>
+          </div>
+
+          {/* Projetos */}
+          <div className="space-y-16 md:space-y-24">
+            {[
+              {
+                title_pt: "Geração Z Sistemas",
+                title_en: "Geração Z Sistemas",
+                desc_pt: "ERP Gastronômico inovador desenvolvido para automatizar e otimizar a gestão de restaurantes, bares e bistrôs. Conta com controle ágil de pedidos, gerenciamento de estoque inteligente e faturamento simplificado em tempo real.",
+                desc_en: "Innovative Gastronomic ERP developed to automate and optimize the management of restaurants, bars, and bistros. Features agile order tracking, intelligent inventory management, and simplified real-time billing.",
+                img: "/image/Geração z.png"
+              },
+              {
+                title_pt: "Astroclock",
+                title_en: "Astroclock",
+                desc_pt: "Um relógio astronômico interativo que conecta a marcação do tempo aos ciclos celestes. Uma experiência imersiva desenvolvida com conceitos matemáticos e órbitas desenhadas em tempo real.",
+                desc_en: "An interactive astronomical clock that connects timekeeping to celestial cycles. An immersive experience developed with mathematical concepts and orbits rendered in real time.",
+                img: "/image/astroclock.png"
+              },
+              {
+                title_pt: "Project Math",
+                title_en: "Project Math",
+                desc_pt: "Plataforma de aprendizado e visualização matemática interativa. Transforma equações complexas e conceitos geométricos em gráficos dinâmicos tridimensionais, interativos e fáceis de compreender.",
+                desc_en: "Interactive mathematics learning and visualization platform. Transforms complex equations and geometric concepts into dynamic, interactive 3D graphs that are easy to understand.",
+                img: "/image/project math.png"
+              },
+              {
+                title_pt: "DVD Web",
+                title_en: "DVD Web",
+                desc_pt: "Uma recriação nostálgica e moderna do clássico protetor de tela do DVD. Desenvolvido com físicas leves em tempo real e efeitos visuais interativos que reagem ao comportamento do navegador.",
+                desc_en: "A nostalgic and modern recreation of the classic DVD screensaver. Developed with lightweight real-time physics and interactive visual effects that react to browser behavior.",
+                img: "/image/DVD web.png"
+              }
+            ].map((proj, idx) => {
+              const title = language === 'pt' ? proj.title_pt : proj.title_en;
+              const desc = language === 'pt' ? proj.desc_pt : proj.desc_en;
+              return (
+                <div 
+                  key={idx} 
+                  className="flex flex-col md:flex-row items-center gap-8 md:gap-16 bg-[#050505] rounded-[32px] border border-white/5 p-8 md:p-12 hover:border-white/10 transition-all duration-500"
+                >
+                  {/* Descrição à esquerda */}
+                  <div className="flex-1 order-2 md:order-1">
+                    <h2 className="text-2xl md:text-3xl font-light tracking-wide mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
+                      {title}
+                    </h2>
+                    <p className="text-gray-400 font-light leading-relaxed text-base md:text-lg">
+                      {desc}
+                    </p>
+                  </div>
+
+                  {/* Imagem à direita */}
+                  <div className="w-full md:w-[350px] aspect-[4/3] relative rounded-2xl overflow-hidden border border-white/5 order-1 md:order-2 bg-[#050505] flex items-center justify-center group">
+                    <img 
+                      src={proj.img} 
+                      alt={title}
+                      className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </main>
+    );
+  }
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [siteTitle, setSiteTitle] = useState('');
   const [segment, setSegment] = useState('');
