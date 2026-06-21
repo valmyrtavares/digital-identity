@@ -187,11 +187,11 @@ export default function ProdutoDetalhe({ params }) {
           {/* Header de navegação */}
           <div className="mb-16 flex items-center justify-between">
             <Link 
-              href="/" 
+              href="/produtos" 
               onClick={(e) => { e.currentTarget.innerHTML = `<span class='text-gray-400'>${language === 'pt' ? 'AGUARDE...' : 'WAIT...'}</span>`; }}
               className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group uppercase tracking-widest"
             >
-              <span className="group-hover:-translate-x-1 transition-transform">←</span> {language === 'pt' ? 'Início' : 'Home'}
+              <span className="group-hover:-translate-x-1 transition-transform">←</span> {language === 'pt' ? 'Serviços' : 'Services'}
             </Link>
           </div>
 
